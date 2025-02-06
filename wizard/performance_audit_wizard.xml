@@ -1,0 +1,38 @@
+<odoo>
+    <record id="view_performance_audit_wizard" model="ir.ui.view">
+        <field name="name">performance.audit.wizard.form</field>
+        <field name="model">performance.audit.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Performance Audit Wizard">
+                <sheet>
+                    <group colspan="2">
+                        <group>
+                            <!-- Checkboxes for each metric -->
+                            <field name="slow_filters"/>
+                            <field name="slow_crons"/>
+                            <field name="slow_requests"/>
+                            <field name="log_file" filename="log_file_name"/>
+                            <field name="log_file_name" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="slow_filters_threshold"/>
+                            <field name="slow_requests_threshold"/>
+                        </group>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="run_audit" type="object" string="Run Audit" class="oe_highlight"/>
+                    <button string="Cancel" special="cancel" class="oe_link"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Window action to open the wizard -->
+    <record id="action_performance_audit_wizard" model="ir.actions.act_window">
+        <field name="name">Run Performance Audit</field>
+        <field name="res_model">performance.audit.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

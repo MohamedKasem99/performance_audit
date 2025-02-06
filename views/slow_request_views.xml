@@ -1,0 +1,56 @@
+<odoo>
+    <!-- Action to open Slow Request (tree, form) -->
+    <record id="action_slow_request" model="ir.actions.act_window">
+        <field name="name">Slow Requests</field>
+        <field name="res_model">pa.slow.request</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{'group_by': 'session'}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+            No slow requests are recorded
+            </p>
+            <p>
+            Run Audit with the slow requests enabled to parse logs
+            </p>
+        </field>
+    </record>
+
+    <!-- Single tree view definition with a header that includes the 'Run Audit' button -->
+    <record id="view_slow_request_tree" model="ir.ui.view">
+        <field name="name">slow.request.tree</field>
+        <field name="model">pa.slow.request</field>
+        <field name="arch" type="xml">
+            <tree string="Slow Requests" default_order="session desc, timestamp desc">
+                <field name="timestamp"/>
+                <field name="body"/>
+                <field name="ip_address"/>
+                <field name="num_queries"/>
+                <field name="sql_time"/>
+                <field name="python_time"/>
+                <field name="pid"/>
+            </tree>
+        </field>
+    </record>
+
+
+
+    <record id="view_slow_request_form" model="ir.ui.view">
+        <field name="name">slow.request.form</field>
+        <field name="model">pa.slow.request</field>
+        <field name="arch" type="xml">
+            <form string="Slow Request Form">
+                <sheet>
+                    <group>
+                        <field name="timestamp"/>
+                        <field name="body"/>
+                        <field name="ip_address"/>
+                        <field name="num_queries"/>
+                        <field name="sql_time"/>
+                        <field name="python_time"/>
+                        <field name="pid"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>
