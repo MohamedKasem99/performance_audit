@@ -1,5 +1,4 @@
 <odoo>
-    <!-- Action to open Slow Request (tree, form) -->
     <record id="action_slow_request" model="ir.actions.act_window">
         <field name="name">Slow Requests</field>
         <field name="res_model">pa.slow.request</field>
@@ -14,12 +13,11 @@
         </field>
     </record>
 
-    <!-- Single tree view definition with a header that includes the 'Run Audit' button -->
     <record id="view_slow_request_tree" model="ir.ui.view">
         <field name="name">slow.request.tree</field>
         <field name="model">pa.slow.request</field>
         <field name="arch" type="xml">
-            <tree string="Slow Requests" default_order="timestamp desc">
+            <tree string="Slow Requests" default_order="timestamp desc" create="0">
                 <field name="timestamp"/>
                 <field name="body"/>
                 <field name="ip_address"/>

@@ -3,4 +3,3 @@
 
 from .performance import slow_filter
 from .performance import slow_request
-from . import dashboard

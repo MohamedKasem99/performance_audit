@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Action to open Slow Filters (tree, form) -->
     <record id="action_slow_filter" model="ir.actions.act_window">
         <field name="name">Slow Filters</field>
         <field name="res_model">pa.slow.filter</field>
@@ -15,12 +14,11 @@
         </field>
     </record>
 
-    <!-- Single tree view definition with a header that includes the 'Run Audit' button -->
     <record id="view_slow_filter_tree" model="ir.ui.view">
         <field name="name">slow.filter.tree</field>
         <field name="model">pa.slow.filter</field>
         <field name="arch" type="xml">
-            <tree string="Slow Filters" default_order="duration desc">
+            <tree string="Slow Filters" default_order="duration desc" create="0">
                 <field name="name"/>
                 <field name="model_id"/>
                 <field name="domain"/>

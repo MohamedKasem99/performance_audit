@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="performance_audit.Dashboard" owl="1">
+        <div class="o_pa_dashboard p-4">
+            <!-- Show loading spinner when state.loading is true -->
+            <t t-if="state.loading">
+                <div class="d-flex justify-content-center align-items-center py-5">
+                    <div class="fa fa-spinner fa-spin fa-2x"/>
+                    <div class="ms-2">Loading dashboard data...</div>
+                </div>
+            </t>
+            <!-- Show dashboard content when not loading -->
+            <t t-else="">
+                <!-- Action buttons -->
+                <div class="mb-4">
+                    <button class="btn btn-primary px-4 shadow-sm" t-on-click="openAuditWizard">
+                        <i class="fa fa-play me-2"/>Run New Audit
+                    </button>
+                </div>
+                <!-- Stats cards -->
+                <div class="row g-4">
+                    <div class="col-lg-6 col-12">
+                        <div class="card shadow-sm h-100 cursor-pointer" t-on-click="() => this.env.services.action.doAction('performance_audit.action_slow_filter')">
+                            <div class="card-body text-center p-4">
+                                <h5 class="card-title text-muted mb-3">Slow Filters</h5>
+                                <p class="h1 text-primary mb-0 fw-bold"><t t-esc="state.slow_filter_count"/></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 col-12">
+                        <div class="card shadow-sm h-100 cursor-pointer" t-on-click="() => this.env.services.action.doAction('performance_audit.action_slow_request')">
+                            <div class="card-body text-center p-4">
+                                <h5 class="card-title text-muted mb-3">Slow Requests</h5>
+                                <p class="h1 text-primary mb-0 fw-bold"><t t-esc="state.slow_request_count"/></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </t>
+        </div>
+    </t>
+</templates>

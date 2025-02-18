@@ -80,4 +80,4 @@ class SlowFilterAudit extends Component {
 
 SlowFilterAudit.template = 'performance_audit.SlowFilterAudit';
 
-registry.category("actions").add("pa_slow_filter_audit", SlowFilterAudit); 
+registry.category("actions").add("pa_slow_filter_audit", SlowFilterAudit);

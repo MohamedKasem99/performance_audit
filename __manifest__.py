@@ -6,7 +6,7 @@
     'author': 'kasm',
     'license': 'LGPL-3',
     'depends': ['base'],
-    "icon": "/static/description/icon.png",
+    "icon": "performance_audit/static/description/icon.png",
     'data': [
         'security/ir.model.access.csv',
         'views/slow_filter_views.xml',
@@ -19,9 +19,10 @@
     'application': True,
     'assets': {
         'web.assets_backend': [
-            'performance_audit/static/src/slow_filter/slow_filter.js',
-            'performance_audit/static/src/slow_filter/slow_filter_templates.xml',
-            'performance_audit/static/src/slow_filter/slow_filter_audit.js',
+            'performance_audit/static/src/xml/slow_filter_templates.xml',
+            'performance_audit/static/src/xml/dashboard.xml',
+            'performance_audit/static/src/js/slow_filter_audit.js',
+            'performance_audit/static/src/js/dashboard.js',
         ],
     },
 }

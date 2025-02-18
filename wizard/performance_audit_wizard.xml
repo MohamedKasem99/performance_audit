@@ -8,15 +8,15 @@
                     <group>
                         <group colspan="2">
                             <group>
+                                <field name="slow_crons"/>
+                                <field name="slow_requests"/>
+                                <field name="slow_requests_threshold" invisible="not slow_requests"/>
+                            </group>
+                            <group>
                                 <field name="slow_filters"/>
                                 <field name="batch_size" invisible="not slow_filters"/>
                                 <field name="offset" invisible="not slow_filters"/>
                                 <field name="slow_filters_threshold" invisible="not slow_filters"/>
-                            </group>
-                            <group>
-                                <field name="slow_crons"/>
-                                <field name="slow_requests"/>
-                                <field name="slow_requests_threshold" invisible="not slow_requests"/>
                             </group>
                         </group>
                         <group>
@@ -33,7 +33,6 @@
         </field>
     </record>
 
-    <!-- Window action to open the wizard -->
     <record id="action_performance_audit_wizard" model="ir.actions.act_window">
         <field name="name">Run Performance Audit</field>
         <field name="res_model">performance.audit.wizard</field>
