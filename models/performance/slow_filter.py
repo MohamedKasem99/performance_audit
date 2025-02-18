@@ -19,11 +19,17 @@ class SlowFilter(models.Model):
     duration = fields.Float(string='Duration (seconds)', required=True)
     session = fields.Char('Session', index=True)
 
-    def run_script(self, session):
+    def audit_filters_batched(self, batch_size=5, offset=0, threshold=MAX_TIME):
         Filters = self.env["ir.filters"]
         vals = []
-        threshold = self.env.context.get("threshold", MAX_TIME)
-        for f in Filters.search([("active", "=", True)]):
+        
+        # Get total count for progress calculation
+        total_filters = Filters.search_count([("active", "=", True)])
+        
+        # Get current batch
+        filters = Filters.search([("active", "=", True)], limit=batch_size, offset=offset)
+        
+        for f in filters:
             try:
                 start = time.time()
                 self.env[f.model_id].search_count(f._get_eval_domain())
@@ -48,10 +54,18 @@ class SlowFilter(models.Model):
                             "model_id": f.model_id,
                             "domain": f.domain,
                             "duration": duration,
-                            "session": session,
                         }
                     )
             except ValueError as e:
                 self.env.cr.rollback()
                 _logger.exception(e)
+        
+        # Create records for this batch
         self.create(vals)
+        
+        # Return progress information
+        return {
+            'done': offset + len(filters),
+            'total': total_filters,
+            'has_more': (offset + len(filters)) < total_filters,
+        }

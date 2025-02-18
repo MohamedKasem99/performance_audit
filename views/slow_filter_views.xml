@@ -1,16 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <!-- Action to open Slow Filters (tree, form) -->
     <record id="action_slow_filter" model="ir.actions.act_window">
         <field name="name">Slow Filters</field>
         <field name="res_model">pa.slow.filter</field>
         <field name="view_mode">tree,form</field>
-        <field name="context">{'group_by': 'session'}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
-            No slow filters are recorded
+                No slow filters detected yet
             </p>
             <p>
-            Run Audit with the slow filters enabled to gather information
+                Click the "Run Audit" button to start detecting slow filters.
             </p>
         </field>
     </record>
@@ -20,7 +20,7 @@
         <field name="name">slow.filter.tree</field>
         <field name="model">pa.slow.filter</field>
         <field name="arch" type="xml">
-            <tree string="Slow Filters" default_order="session desc, duration desc">
+            <tree string="Slow Filters" default_order="duration desc">
                 <field name="name"/>
                 <field name="model_id"/>
                 <field name="domain"/>
@@ -29,12 +29,27 @@
         </field>
     </record>
 
+    <record id="view_slow_filter_search" model="ir.ui.view">
+        <field name="name">slow.filter.search</field>
+        <field name="model">pa.slow.filter</field>
+        <field name="arch" type="xml">
+            <search string="Search Slow Filters">
+                <field name="name" filter_domain="[('name', 'ilike', self)]"/>
+                <field name="model_id" filter_domain="[('model_id', 'ilike', self)]"/>
+                <field name="domain" filter_domain="[('domain', 'ilike', self)]"/>
+                <field name="duration" filter_domain="[('duration', '>=', self)]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Model" name="group_by_model" domain="[]" context="{'group_by': 'model_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
 
     <record id="view_slow_filter_form" model="ir.ui.view">
         <field name="name">slow.filter.form</field>
         <field name="model">pa.slow.filter</field>
         <field name="arch" type="xml">
-            <form string="Slow Filter Form">
+            <form string="Slow Filter Form" create="0" edit="0">
                 <sheet>
                     <group>
                         <field name="name"/>

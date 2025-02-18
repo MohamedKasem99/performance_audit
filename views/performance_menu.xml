@@ -1,22 +1,20 @@
 <odoo>
-    <!-- 1) The wizard action to open the popup -->
-    <record id="action_performance_audit_wizard" model="ir.actions.act_window">
-        <field name="name">Run Performance Audit</field>
-        <field name="res_model">performance.audit.wizard</field>
-        <field name="view_mode">form</field>
-        <field name="target">new</field>
-    </record>
+    <menuitem id="menu_performance_audit_root"
+            name="Performance Audit"
+            sequence="10"
+            action="action_performance_audit_dashboard"/>
+    
+    <menuitem id="menu_performance_audit_dashboard"
+              name="Dashboard"
+              parent="menu_performance_audit_root"
+              sequence="10"
+              action="action_performance_audit_dashboard"/>
 
-    <!-- 2) The existing root menu for the app -->
-    <menuitem id="menu_performance_audit_root" name="Performance Audit" sequence="10"/>
-
-    <!-- 3) Submenu 'Performance' -->
     <menuitem id="menu_performance"
               name="Performance"
               parent="menu_performance_audit_root"
               sequence="20"/>
 
-    <!-- 4) For your existing slow filters action -->
     <record id="action_slow_filter" model="ir.actions.act_window">
         <field name="name">Slow Filters</field>
         <field name="res_model">pa.slow.filter</field>
@@ -38,12 +36,12 @@
     <menuitem id="menu_slow_request"
               name="Slow Requests"
               parent="menu_performance"
-              sequence="30"
+              sequence="40"
               action="action_slow_request"/>
 
     <menuitem id="menu_run_audit_wizard"
               name="Run Audit"
               parent="menu_performance"
-              sequence="40"
+              sequence="50"
               action="action_performance_audit_wizard"/>
 </odoo>

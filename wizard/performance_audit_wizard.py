@@ -7,6 +7,8 @@ from odoo.exceptions import UserError
 class PerformanceAuditWizard(models.TransientModel):
     _name = 'performance.audit.wizard'
     _description = 'Performance Audit Wizard'
+    _transient_max_hours = 1
+    _transient_max_count = 1
 
     audit_ts = fields.Datetime(string="Audit start timestamp", default=fields.Datetime.now)
     slow_filters = fields.Boolean(string='Slow Filters')
@@ -22,6 +24,8 @@ class PerformanceAuditWizard(models.TransientModel):
         string='Filters Threshold (secs)',
         default=2.0
     )
+    batch_size = fields.Integer(string='Batch Size', default=5)
+    offset = fields.Integer(string='Starting Offset', default=0)
 
     def run_audit(self):
         """
@@ -29,21 +33,24 @@ class PerformanceAuditWizard(models.TransientModel):
         """
         session = f"{self.audit_ts} {self.env.user.name}"
         if self.slow_crons:
-            if not self.log_file:
-                raise UserError("A log file is required for this audit")
+            pass
             #TODO: Implement slow crons audit
 
         if self.slow_requests:
-            if not self.log_file:
-                raise UserError("A log file is required for this audit")
             self.env["pa.slow.request"].with_context(
                 threshold=self.slow_requests_threshold
             ).run_script(session, self.log_file, self.log_file_name)
 
         if self.slow_filters:
-            self.env["pa.slow.filter"].with_context(
-                threshold=self.slow_filters_threshold
-            ).run_script(session)
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'pa_slow_filter_audit',
+                'params': {
+                    'slow_filters_threshold': self.slow_filters_threshold,
+                    'batch_size': self.batch_size,
+                    'offset': self.offset,
+                }
+            }
 
         return {
             'type': 'ir.actions.client',

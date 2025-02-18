@@ -6,13 +6,22 @@
     'author': 'kasm',
     'license': 'LGPL-3',
     'depends': ['base'],
+    "icon": "/static/description/icon.png",
     'data': [
         'security/ir.model.access.csv',
-        'wizard/performance_audit_wizard.xml',
-        'views/performance_menu.xml',
         'views/slow_filter_views.xml',
         'views/slow_request_views.xml',
+        'wizard/performance_audit_wizard.xml',
+        'views/performance_audit_dashboard.xml',
+        'views/performance_menu.xml',
     ],
     'installable': True,
     'application': True,
+    'assets': {
+        'web.assets_backend': [
+            'performance_audit/static/src/slow_filter/slow_filter.js',
+            'performance_audit/static/src/slow_filter/slow_filter_templates.xml',
+            'performance_audit/static/src/slow_filter/slow_filter_audit.js',
+        ],
+    },
 }

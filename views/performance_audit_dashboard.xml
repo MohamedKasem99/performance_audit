@@ -1,0 +1,52 @@
+<odoo>
+    <!-- The action to open the kanban, showing only 1 dashboard record -->
+    <record id="action_performance_audit_dashboard" model="ir.actions.act_window">
+        <field name="name">Dashboard</field>
+        <field name="res_model">pa.dashboard</field>
+        <field name="view_mode">kanban</field>
+        <field name="domain">[('id','=',1)]</field>
+        <field name="context">{'create': False}</field>
+        <field name="target">main</field>
+    </record>
+    <!-- create a kanban view for the dashboard that shows the slow requests and slow filters in separate cards. Each card should be a link to the associated action. It should also display stats in nice way
+    -->
+    <record id="view_performance_audit_dashboard" model="ir.ui.view">
+        <field name="name">pa.dashboard.kanban</field>
+        <field name="model">pa.dashboard</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_dashboard" create="false" quick_create="false">
+                <field name="slow_request_count"/>
+                <field name="slow_filter_count"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="o_kanban_record">
+                            <div class="o_account_dashboard_header">
+                                <h4>Slow Requests</h4>
+                                <h3>
+                                    <!-- make it a link to the slow requests action -->
+                                    <a href="#" t-att-data-action="action_slow_request">
+                                        <field name="slow_request_count"/>
+                                    </a>
+                                </h3>
+                            </div>
+                            <div class="o_account_dashboard_header">
+                                <h4>Slow Filters</h4>
+                                <h3>
+                                    <field name="slow_filter_count"/>
+                                </h3>
+                            </div>
+                            <div t-attf-class="o_kanban_card">
+                                <div class="o_account_dashboard_header">
+                                    <h4>Performance Audit</h4>
+                                    <button name="action_run_audit" type="object" class="btn btn-primary">
+                                        Run Audit
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+</odoo>

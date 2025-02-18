@@ -71,7 +71,7 @@ class SlowRequest(models.Model):
 
     def _handle_flat_file(self, log_file, session):
         vals = []
-        for line in log_file.decode('utf-8'):
+        for line in log_file.readlines():
             data = self.parse_log_line(line)
             if data:
                 vals.append(dict(**data, session=session))
@@ -86,5 +86,5 @@ class SlowRequest(models.Model):
             except gzip.BadGzipFile as e:
                 raise UserError(f"Error: File {log_file_name} is not a valid gzip file.") from e
         else:
-            vals = self._handle_flat_file(log_file, session)
+            vals = self._handle_flat_file(io.StringIO(log_file.decode('utf-8')), session)
         return vals

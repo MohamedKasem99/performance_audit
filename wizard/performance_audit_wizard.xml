@@ -5,24 +5,29 @@
         <field name="arch" type="xml">
             <form string="Performance Audit Wizard">
                 <sheet>
-                    <group colspan="2">
-                        <group>
-                            <!-- Checkboxes for each metric -->
-                            <field name="slow_filters"/>
-                            <field name="slow_crons"/>
-                            <field name="slow_requests"/>
-                            <field name="log_file" filename="log_file_name"/>
-                            <field name="log_file_name" invisible="1"/>
+                    <group>
+                        <group colspan="2">
+                            <group>
+                                <field name="slow_filters"/>
+                                <field name="batch_size" invisible="not slow_filters"/>
+                                <field name="offset" invisible="not slow_filters"/>
+                                <field name="slow_filters_threshold" invisible="not slow_filters"/>
+                            </group>
+                            <group>
+                                <field name="slow_crons"/>
+                                <field name="slow_requests"/>
+                                <field name="slow_requests_threshold" invisible="not slow_requests"/>
+                            </group>
                         </group>
                         <group>
-                            <field name="slow_filters_threshold"/>
-                            <field name="slow_requests_threshold"/>
+                            <field name="log_file" filename="log_file_name" required="slow_crons or slow_requests"/>
+                            <field name="log_file_name" invisible="1"/>
                         </group>
                     </group>
                 </sheet>
                 <footer>
-                    <button name="run_audit" type="object" string="Run Audit" class="oe_highlight"/>
-                    <button string="Cancel" special="cancel" class="oe_link"/>
+                    <button string="Run Audit" name="run_audit" type="object" class="btn-primary" data-hotkey="q"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel" data-hotkey="z"/>
                 </footer>
             </form>
         </field>
