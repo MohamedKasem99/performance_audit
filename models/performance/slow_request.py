@@ -38,11 +38,15 @@ class SlowRequest(models.Model):
     pid = fields.Integer(string="Process ID")
     session = fields.Char('Session', index=True)
 
-    def run_script(self, session, log_file, log_file_name):
-        vals = self.process_log_file(log_file, log_file_name, session)
+    def audit_requests(self, logs):
+        vals = []
+        for line in logs.readlines():
+            data = self._parse_log_line(line)
+            if data:
+                vals.append(data)
         self.create(vals)
 
-    def parse_log_line(self, line):
+    def _parse_log_line(self, line):
         match = LOG_PATTERN.match(line)
         threshold = self.env.context.get("threshold", MAX_TIME)
         if match:
@@ -58,33 +62,3 @@ class SlowRequest(models.Model):
                             "python_time": float(data["python_time"]),
                 }
         _logger.debug("Malformed log line skipped: %s", line)
-
-    def _handle_gzip(self, log_file, session):
-        vals = []
-        with gzip.GzipFile(fileobj=io.BytesIO(log_file)) as logs:
-            for line in logs:
-                data = self.parse_log_line(line.decode())
-                if data:
-                    vals.append(dict(**data, session=session))
-        return vals
-
-
-    def _handle_flat_file(self, log_file, session):
-        vals = []
-        for line in log_file.readlines():
-            data = self.parse_log_line(line)
-            if data:
-                vals.append(dict(**data, session=session))
-        return vals
-    
-
-    def process_log_file(self, log_file, log_file_name, session):
-        log_file = base64.b64decode(log_file)
-        if log_file_name.endswith(".gz"):
-            try:
-                vals = self._handle_gzip(log_file, session)
-            except gzip.BadGzipFile as e:
-                raise UserError(f"Error: File {log_file_name} is not a valid gzip file.") from e
-        else:
-            vals = self._handle_flat_file(io.StringIO(log_file.decode('utf-8')), session)
-        return vals

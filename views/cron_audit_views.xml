@@ -1,0 +1,77 @@
+<odoo>
+    <record id="action_slow_cron" model="ir.actions.act_window">
+        <field name="name">Cron Audit</field>
+        <field name="res_model">pa.cron.audit</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+            No slow crons are recorded
+            </p>
+            <p>
+            Run Audit with the slow crons enabled to parse logs
+            </p>
+        </field>
+    </record>
+
+    <record id="view_slow_cron_tree" model="ir.ui.view">
+        <field name="name">slow.cron.tree</field>
+        <field name="model">pa.cron.audit</field>
+        <field name="arch" type="xml">
+            <tree string="Cron Audit" default_order="average_execution_time desc" create="0">
+                <field name="name"/>
+                <field name="average_execution_time"/>
+                <field name="last_execution"/>
+                <field name="num_timeouts"/>
+                <field name="slowest_execution"/>
+                <field name="total_executions"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_slow_cron_form" model="ir.ui.view">
+        <field name="name">slow.cron.form</field>
+        <field name="model">pa.cron.audit</field>
+        <field name="arch" type="xml">
+            <form string="Cron Audit" create="0" edit="0">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="cron_id"/>
+                            <field name="average_execution_time"/>
+                            <field name="last_execution"/>
+                            <field name="num_timeouts"/>
+                            <field name="slowest_execution"/>
+                            <field name="total_executions"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Executions">
+                            <field name="execution_ids">
+                                <tree string="Executions" create="0" order="timestamp desc">
+                                    <field name="timestamp"/>
+                                    <field name="duration"/>
+                                    <field name="is_timeout"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_slow_cron_search" model="ir.ui.view">
+        <field name="name">slow.cron.search</field>
+        <field name="model">pa.cron.audit</field>
+        <field name="arch" type="xml">
+            <search string="Search Slow Crons">
+                <field name="name"/>
+                <field name="average_execution_time"/>
+                <field name="last_execution"/>
+                <field name="num_timeouts"/>
+                <field name="slowest_execution"/>
+                <field name="total_executions"/>
+            </search>
+        </field>
+    </record>
+</odoo> 

@@ -39,6 +39,18 @@
               sequence="40"
               action="action_slow_request"/>
 
+    <record id="action_slow_cron" model="ir.actions.act_window">
+        <field name="name">Cron Audit</field>
+        <field name="res_model">pa.cron.audit</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem id="menu_slow_cron"
+              name="Cron Audit"
+              parent="menu_performance"
+              sequence="20"
+              action="action_slow_cron"/>
+
     <menuitem id="menu_table_size"
               name="Table Sizes"
               parent="menu_performance"

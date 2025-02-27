@@ -8,7 +8,7 @@
                     <group>
                         <group colspan="2">
                             <group>
-                                <field name="slow_crons"/>
+                                <field name="cron_audit"/>
                                 <field name="slow_requests"/>
                                 <field name="slow_requests_threshold" invisible="not slow_requests"/>
                                 <field name="table_size"/>
@@ -21,7 +21,7 @@
                             </group>
                         </group>
                         <group>
-                            <field name="log_file" filename="log_file_name" required="slow_crons or slow_requests"/>
+                            <field name="log_file" filename="log_file_name" required="cron_audit or slow_requests"/>
                             <field name="log_file_name" invisible="1"/>
                         </group>
                     </group>
