@@ -39,6 +39,12 @@
               sequence="40"
               action="action_slow_request"/>
 
+    <menuitem id="menu_table_size"
+              name="Table Sizes"
+              parent="menu_performance"
+              action="action_table_size"
+              sequence="40"/>
+
     <menuitem id="menu_run_audit_wizard"
               name="Run Audit"
               parent="menu_performance"

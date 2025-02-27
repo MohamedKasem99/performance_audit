@@ -11,6 +11,7 @@
                                 <field name="slow_crons"/>
                                 <field name="slow_requests"/>
                                 <field name="slow_requests_threshold" invisible="not slow_requests"/>
+                                <field name="table_size"/>
                             </group>
                             <group>
                                 <field name="slow_filters"/>

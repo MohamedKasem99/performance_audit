@@ -11,6 +11,7 @@
         'security/ir.model.access.csv',
         'views/slow_filter_views.xml',
         'views/slow_request_views.xml',
+        'views/table_size_views.xml',
         'wizard/performance_audit_wizard.xml',
         'views/performance_audit_dashboard.xml',
         'views/performance_menu.xml',

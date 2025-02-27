@@ -3,3 +3,4 @@
 
 from .performance import slow_filter
 from .performance import slow_request
+from .performance import table_size

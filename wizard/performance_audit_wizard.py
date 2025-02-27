@@ -26,6 +26,7 @@ class PerformanceAuditWizard(models.TransientModel):
     )
     batch_size = fields.Integer(string='Batch Size', default=5)
     offset = fields.Integer(string='Starting Offset', default=0)
+    table_size = fields.Boolean(string='Table Size')
 
     def run_audit(self):
         """
@@ -40,6 +41,9 @@ class PerformanceAuditWizard(models.TransientModel):
             self.env["pa.slow.request"].with_context(
                 threshold=self.slow_requests_threshold
             ).run_script(session, self.log_file, self.log_file_name)
+
+        if self.table_size:
+            self.env["pa.table.size"].capture_table_sizes()
 
         if self.slow_filters:
             return {

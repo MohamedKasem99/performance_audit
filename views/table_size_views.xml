@@ -1,0 +1,58 @@
+<odoo>
+    <record id="view_table_size_form" model="ir.ui.view">
+        <field name="name">pa.table.size.form</field>
+        <field name="model">pa.table.size</field>
+        <field name="arch" type="xml">
+        <!-- non-editable fields -->
+        <form create="false" edit="false">
+            <sheet>
+                <group>
+                    <field name="name"/>
+                    <field name="schema"/>
+                    <field name="table_size" widget="integer"/>
+                    <field name="index_size" widget="integer"/>
+                    <field name="toast_size" widget="integer"/>
+                </group>
+                <notebook>
+                    <page string="Column Sizes">
+                        <field name="column_size_ids">
+                            <tree default_order="size desc">
+                                <field name="name"/>
+                                <field name="size" widget="integer" sum="Total Size"/>
+                            </tree>
+                        </field>
+                    </page>
+                </notebook>
+            </sheet>
+        </form>
+    </field>
+</record>
+
+<record id="view_table_size_tree" model="ir.ui.view">
+    <field name="name">pa.table.size.tree</field>
+    <field name="model">pa.table.size</field>
+    <field name="arch" type="xml">
+        <tree create="false" edit="false">
+            <field name="name"/>
+            <field name="schema"/>
+            <field name="table_size" widget="integer" sum="Total Table Size"/>
+            <field name="index_size" widget="integer" sum="Total Index Size"/>
+            <field name="toast_size" widget="integer" sum="Total Toast Size"/>
+        </tree>
+    </field>
+</record>
+
+<record id="action_table_size" model="ir.actions.act_window">
+    <field name="name">Table Sizes</field>
+    <field name="res_model">pa.table.size</field>
+    <field name="view_mode">tree,form</field>
+    <field name="help" type="html">
+        <p class="o_view_nocontent_smiling_face">
+            No table size measurements yet
+        </p>
+        <p>
+            Capture table sizes to analyze database storage usage.
+        </p>
+    </field>
+</record>
+</odoo>

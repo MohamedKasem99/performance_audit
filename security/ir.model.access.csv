@@ -6,4 +6,10 @@
 "access_pa_slow_request_user","Access Slow Requests","model_pa_slow_request","base.group_user",1,1,1,1
 "access_pa_slow_request_admin","Admin Access Slow Requests","model_pa_slow_request","base.group_system",1,1,1,1
 
+"access_pa_table_size_user","Access Table Sizes","model_pa_table_size","base.group_user",1,1,1,1
+"access_pa_table_size_admin","Admin Access Table Sizes","model_pa_table_size","base.group_system",1,1,1,1
+
+"access_pa_table_column_size_user","Access Table Column Sizes","model_pa_table_column_size","base.group_user",1,1,1,1
+"access_pa_table_column_size_admin","Admin Access Table Column Sizes","model_pa_table_column_size","base.group_system",1,1,1,1
+
 "access_performance_audit_wizard_user","Performance Audit Wizard","model_performance_audit_wizard","base.group_user",1,1,1,1

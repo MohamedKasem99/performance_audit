@@ -9,6 +9,8 @@ export class Dashboard extends Component {
             loading: false,
             slow_filter_count: 0,
             slow_request_count: 0,
+            biggest_table_size: 0,
+            biggest_table_name: '',
         });
         this.loadDashboardData();
     }
@@ -25,6 +27,8 @@ export class Dashboard extends Component {
             if (result) {
                 this.state.slow_filter_count = result.slow_filter_count || 0;
                 this.state.slow_request_count = result.slow_request_count || 0;
+                this.state.biggest_table_size = result.biggest_table_size || 0;
+                this.state.biggest_table_name = result.biggest_table_name || '';
             }
         } catch (error) {
             console.error('Failed to load dashboard data:', error);
