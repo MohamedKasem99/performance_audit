@@ -1,4 +1,4 @@
-# slow cron_ids
+# slow crons_ids_by_name
 
 from odoo import models, fields, api
 import re
@@ -13,7 +13,14 @@ class CronExecution(models.Model):
     cron_audit_id = fields.Many2one('pa.cron.audit', string='Cron Audit', ondelete='cascade')
     duration = fields.Float('Duration')
     timestamp = fields.Datetime('Timestamp')
+    timestamp_utc = fields.Char('Timestamp UTC', compute='_compute_timestamp_utc')
     is_timeout = fields.Boolean('Is Timeout')
+
+    @api.depends('timestamp')
+    def _compute_timestamp_utc(self):
+        for record in self:
+            record.timestamp_utc = fields.Datetime.to_string(record.timestamp) + ' UTC'
+    
 
 class CronAudit(models.Model):
     _name = 'pa.cron.audit'
@@ -21,20 +28,24 @@ class CronAudit(models.Model):
 
     name = fields.Char('Name')
     cron_id = fields.Many2one('ir.cron', string='Cron')
-    last_execution = fields.Datetime('Last Execution', compute='_compute_stats', store=True)
     average_execution_time = fields.Float('Average Execution Time', compute='_compute_stats', store=True)
     total_executions = fields.Integer('Total Executions', compute='_compute_stats', store=True)
     execution_ids = fields.One2many('pa.cron.execution', 'cron_audit_id', 'Executions', readonly=True)
-    num_timeouts = fields.Integer('Number of Errors/Timeouts')
-    slowest_execution = fields.Float('Slowest Execution', compute='_compute_stats', store=True)
+    slowest_execution_timestamp = fields.Datetime('Slowest Execution Timestamp', compute='_compute_stats', store=True)
+    slowest_execution_duration = fields.Float('Slowest Execution Duration', compute='_compute_stats', store=True)
+    slowest_execution_utc = fields.Char('Last Execution UTC', compute='_compute_stats', store=True)
+    num_timeouts = fields.Integer('Number of Errors/Timeouts', compute='_compute_stats', store=True)
 
     @api.depends('execution_ids')
     def _compute_stats(self):
         for cron in self:
-            cron.slowest_execution = max(execution.duration for execution in cron.execution_ids)
             cron.average_execution_time = sum(execution.duration for execution in cron.execution_ids) / len(cron.execution_ids)
             cron.total_executions = len(cron.execution_ids)
-            cron.last_execution = max(execution.timestamp for execution in cron.execution_ids) if cron.execution_ids else None
+            slowest_execution = max(cron.execution_ids, key=lambda x: x.duration)
+            cron.slowest_execution_timestamp = slowest_execution.timestamp
+            cron.slowest_execution_duration = slowest_execution.duration
+            cron.slowest_execution_utc = fields.Datetime.to_string(slowest_execution.timestamp) + ' UTC'
+            cron.num_timeouts = sum(1 for execution in cron.execution_ids if execution.is_timeout)
 
     def audit_crons(self, logs):
         start_patterns = [
@@ -49,7 +60,7 @@ class CronAudit(models.Model):
         ]
 
         cron_executions = defaultdict(list)  # To store timing data for each cron
-        active_crons = {}  # To track active cron_ids by name
+        active_crons = {}  # To track active crons by name
         for line in logs.readlines():
             for start_pattern in start_patterns:
                 start_match = start_pattern.search(line)
@@ -89,17 +100,19 @@ class CronAudit(models.Model):
                         )
                     break
 
-        cron_ids = self.env["ir.cron"].with_context(active_test=False).search([("cron_name", "in", list(cron_executions.keys()))])
+        crons_ids_by_name = self.env["ir.cron"].with_context(active_test=False).search([("cron_name", "in", list(cron_executions.keys()))]).grouped('name')
         cron_audit_vals = []
-        for cron in cron_ids:
+        for cron_name in cron_executions.keys():
+            cron = crons_ids_by_name.get(cron_name)
+            cron_id = cron.id if cron else None
             cron_audit_vals.append({
-                'cron_id': cron.id,
-                'name': cron.name,
-            }) 
+                'cron_id': cron_id,
+                'name': cron_name,
+            })
         cron_audit_ids = self.create(cron_audit_vals)
         execution_vals = []
-        for cron_audit, execution in zip(cron_audit_ids, cron_executions.values()):
-            for execution in cron_executions[cron_audit.name]:
+        for cron_audit, executions in zip(cron_audit_ids, cron_executions.values()):
+            for execution in executions:
                 execution['cron_audit_id'] = cron_audit.id
                 execution_vals.append(execution)
         self.env['pa.cron.execution'].create(execution_vals)

@@ -19,10 +19,9 @@
         <field name="arch" type="xml">
             <tree string="Cron Audit" default_order="average_execution_time desc" create="0">
                 <field name="name"/>
-                <field name="average_execution_time"/>
-                <field name="last_execution"/>
+                <field name="average_execution_time" string="Average Execution Time (s)"/>
+                <field name="slowest_execution_duration" string="Slowest Execution Duration (s)"/>
                 <field name="num_timeouts"/>
-                <field name="slowest_execution"/>
                 <field name="total_executions"/>
             </tree>
         </field>
@@ -37,20 +36,20 @@
                     <group>
                         <group>
                             <field name="cron_id"/>
-                            <field name="average_execution_time"/>
-                            <field name="last_execution"/>
-                            <field name="num_timeouts"/>
-                            <field name="slowest_execution"/>
-                            <field name="total_executions"/>
+                            <field name="average_execution_time" string="Average Execution Time (s)"/>
+                            <field name="slowest_execution_utc" string="Slowest Execution UTC"/>
+                            <field name="slowest_execution_duration" string="Slowest Execution Duration (s)"/>
+                            <field name="num_timeouts" string="Number of Errors/Timeouts"/>
+                            <field name="total_executions" string="Total Executions"/>
                         </group>
                     </group>
                     <notebook>
                         <page string="Executions">
                             <field name="execution_ids">
                                 <tree string="Executions" create="0" order="timestamp desc">
-                                    <field name="timestamp"/>
-                                    <field name="duration"/>
-                                    <field name="is_timeout"/>
+                                    <field name="timestamp_utc" string="Timestamp UTC"/>
+                                    <field name="duration" string="Duration (s)"/>
+                                    <field name="is_timeout" string="Is Timeout"/>
                                 </tree>
                             </field>
                         </page>
@@ -67,9 +66,9 @@
             <search string="Search Slow Crons">
                 <field name="name"/>
                 <field name="average_execution_time"/>
-                <field name="last_execution"/>
+                <field name="slowest_execution_timestamp"/>
+                <field name="slowest_execution_duration"/>
                 <field name="num_timeouts"/>
-                <field name="slowest_execution"/>
                 <field name="total_executions"/>
             </search>
         </field>
