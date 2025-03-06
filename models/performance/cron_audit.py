@@ -59,7 +59,6 @@ class CronAudit(models.Model):
 
                     if cron_name in active_crons:
                         cron_executions[cron_name].append({
-                            "name": cron_name,
                             "timestamp": timestamp,
                             "is_timeout": True,
                         })
@@ -96,7 +95,7 @@ class CronAudit(models.Model):
             cron_audit_vals.append({
                 'cron_id': cron.id,
                 'name': cron.name,
-            })
+            }) 
         cron_audit_ids = self.create(cron_audit_vals)
         execution_vals = []
         for cron_audit, execution in zip(cron_audit_ids, cron_executions.values()):
