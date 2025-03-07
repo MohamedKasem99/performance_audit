@@ -48,6 +48,7 @@ class CronAudit(models.Model):
             cron.num_timeouts = sum(1 for execution in cron.execution_ids if execution.is_timeout)
 
     def audit_crons(self, logs):
+        cron_line = re.compile(r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3}.*(job|Job)")
         start_patterns = [
             re.compile(r"(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3}).*Starting job `(?P<cron_name>.+?)`\."),
             re.compile(r"(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3}).*Starting job `(?P<cron_name>.+?)`"),
@@ -59,46 +60,40 @@ class CronAudit(models.Model):
             re.compile(r"(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3}).*Job '(?P<cron_name>.+?)' \(\d+\) done in (?P<duration>[0-9\.]+)s")
         ]
 
-        cron_executions = defaultdict(list)  # To store timing data for each cron
+        cron_executions = defaultdict(list)  # To store execution data for each cron
         active_crons = {}  # To track active crons by name
         for line in logs.readlines():
-            for start_pattern in start_patterns:
-                start_match = start_pattern.search(line)
-                if start_match:
-                    cron_name = start_match.group("cron_name")
-                    timestamp = datetime.strptime(start_match.group("timestamp"), "%Y-%m-%d %H:%M:%S,%f")
-
-                    if cron_name in active_crons:
-                        cron_executions[cron_name].append({
-                            "timestamp": timestamp,
-                            "is_timeout": True,
-                        })
-
-                    active_crons[cron_name] = timestamp
-                    break
-
-            # Check for end line
-            for end_pattern in end_patterns:
-                end_match = end_pattern.search(line)
-                if end_match:
-                    cron_name = end_match.group("cron_name")
-                    timestamp = datetime.strptime(end_match.group("timestamp"), "%Y-%m-%d %H:%M:%S,%f")
-
-                    if cron_name in active_crons:
-                        start_time = active_crons.pop(cron_name)
-                        if "duration" in end_match.groupdict():
-                            duration = float(end_match.group("duration"))
-                        else:
-                            duration = (timestamp - start_time).total_seconds()
-
-                        cron_executions[cron_name].append(
-                            {
-                                "timestamp": start_time,
-                                "duration": duration,
-                                "is_timeout": False,
-                            }
-                        )
-                    break
+            if cron_line.search(line):
+                for start_pattern, end_pattern in zip(start_patterns, end_patterns):
+                    start_match = start_pattern.search(line)
+                    end_match = end_pattern.search(line)
+                    if start_match:
+                        cron_name = start_match.group("cron_name")
+                        timestamp = datetime.strptime(start_match.group("timestamp"), "%Y-%m-%d %H:%M:%S,%f")
+                        if cron_name in active_crons:
+                            cron_executions[cron_name].append({
+                                "timestamp": timestamp,
+                                "is_timeout": True,
+                            })
+                        active_crons[cron_name] = timestamp
+                        break
+                    if end_match:
+                        cron_name = end_match.group("cron_name")
+                        timestamp = datetime.strptime(end_match.group("timestamp"), "%Y-%m-%d %H:%M:%S,%f")
+                        if cron_name in active_crons:
+                            start_time = active_crons.pop(cron_name)
+                            if "duration" in end_match.groupdict():
+                                duration = float(end_match.group("duration"))
+                            else:
+                                duration = (timestamp - start_time).total_seconds()
+                            cron_executions[cron_name].append(
+                                {
+                                    "timestamp": start_time,
+                                    "duration": duration,
+                                    "is_timeout": False,
+                                }
+                            )
+                        break
 
         crons_ids_by_name = self.env["ir.cron"].with_context(active_test=False).search([("cron_name", "in", list(cron_executions.keys()))]).grouped('name')
         cron_audit_vals = []
