@@ -5,7 +5,7 @@ import gzip
 import logging
 import io
 import base64
-from odoo import models, fields
+from odoo import models, fields, api
 from odoo.exceptions import UserError
 
 
@@ -30,13 +30,25 @@ class SlowRequest(models.Model):
     _description = 'Slow Requests'
 
     timestamp = fields.Datetime()
+    timestamp_utc = fields.Char(string="Timestamp UTC", compute='_compute_timestamp_utc', store=True)
     body = fields.Char(string="Body", required=True)
     ip_address = fields.Char(string="IP Address")
     num_queries = fields.Integer(string="Number of queries")
     sql_time = fields.Float(string="SQL time")
     python_time = fields.Float(string="Python time")
+    total_time = fields.Float(string="Total time", compute='_compute_total_time', store=True)
     pid = fields.Integer(string="Process ID")
     session = fields.Char('Session', index=True)
+
+    @api.depends('sql_time', 'python_time')
+    def _compute_total_time(self):
+        for record in self:
+            record.total_time = record.sql_time + record.python_time
+
+    @api.depends('timestamp')
+    def _compute_timestamp_utc(self):
+        for record in self:
+            record.timestamp_utc = fields.Datetime.to_string(record.timestamp) + ' UTC'
 
     def audit_requests(self, logs):
         vals = []

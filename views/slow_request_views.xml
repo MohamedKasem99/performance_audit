@@ -17,14 +17,15 @@
         <field name="name">slow.request.tree</field>
         <field name="model">pa.slow.request</field>
         <field name="arch" type="xml">
-            <tree string="Slow Requests" default_order="timestamp desc" create="0">
-                <field name="timestamp"/>
+            <tree string="Slow Requests" default_order="timestamp asc" create="0">
+                <field name="timestamp_utc"/>
                 <field name="body"/>
                 <field name="ip_address"/>
                 <field name="num_queries"/>
-                <field name="sql_time"/>
-                <field name="python_time"/>
-                <field name="pid"/>
+                <field name="sql_time" string="SQL Time (s)"/>
+                <field name="python_time" string="Python Time (s)"/>
+                <field name="total_time" string="Total Time (s)"/>
+                <field name="pid" string="PID"/>
             </tree>
         </field>
     </record>
@@ -38,6 +39,7 @@
                 <field name="ip_address" filter_domain="[('ip_address', 'ilike', self)]"/>
                 <field name="sql_time" filter_domain="[('sql_time', '>=', self)]"/>
                 <field name="python_time" filter_domain="[('python_time', '>=', self)]"/>
+                <field name="total_time" filter_domain="[('total_time', '>=', self)]"/>
                 <field name="pid" filter_domain="[('pid', '=', self)]"/>
                 <group expand="0" string="Group By">
                     <filter string="IP Address" name="group_by_ip" domain="[]" context="{'group_by': 'ip_address'}"/>
@@ -55,13 +57,14 @@
             <form string="Slow Request Form" create="0" edit="0">
                 <sheet>
                     <group>
-                        <field name="timestamp"/>
+                        <field name="timestamp_utc"/>
                         <field name="body"/>
                         <field name="ip_address"/>
                         <field name="num_queries"/>
-                        <field name="sql_time"/>
-                        <field name="python_time"/>
-                        <field name="pid"/>
+                        <field name="sql_time" string="SQL Time (s)"/>
+                        <field name="python_time" string="Python Time (s)"/>
+                        <field name="total_time" string="Total Time (s)"/>
+                        <field name="pid" string="PID"/>
                     </group>
                 </sheet>
             </form>
