@@ -17,3 +17,4 @@
 "access_pa_cron_execution_admin","Admin Access Cron Executions","model_pa_cron_execution","base.group_system",1,1,1,1
 
 "access_performance_audit_wizard_user","Performance Audit Wizard","model_performance_audit_wizard","base.group_user",1,1,1,1
+"access_field_trigger_tree_wizard","Access Field Trigger Tree Wizard","model_field_trigger_tree_wizard","base.group_user",1,1,1,1

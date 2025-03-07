@@ -5,7 +5,7 @@ import { useService } from "@web/core/utils/hooks";
 import { Component, useState } from "@odoo/owl";
 import { _t } from "@web/core/l10n/translation";
 
-class SlowFilterAudit extends Component {
+export class SlowFilterAudit extends Component {
     setup() {
         this.orm = useService("orm");
         this.notification = useService("notification");
@@ -22,7 +22,6 @@ class SlowFilterAudit extends Component {
     }
 
     async runAudit() {
-
         // ensure order of params
         const { batch_size, offset, slow_filters_threshold } = this.props.action.params;
         let currentOffset = offset;
@@ -33,12 +32,12 @@ class SlowFilterAudit extends Component {
                 const result = await this.orm.call(
                     'pa.slow.filter',
                     'audit_filters_batched',
-                [[]],
-                { 
-                    batch_size: batch_size,
-                    offset: currentOffset,
-                    threshold: slow_filters_threshold
-                });
+                    [[]],
+                    { 
+                        batch_size: batch_size,
+                        offset: currentOffset,
+                        threshold: slow_filters_threshold
+                    });
 
                 hasMore = result.has_more;
                 currentOffset += batch_size;
@@ -74,7 +73,6 @@ class SlowFilterAudit extends Component {
         }, {
             clearBreadcrumbs: true
         });
-
     }
 }
 

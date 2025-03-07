@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="performance_audit.FieldTriggerTree" owl="1">
+        <div class="o_field_trigger_tree p-3">
+            <!-- Navigation bar -->
+            <div class="mb-3 d-flex align-items-center">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item">
+                            <a href="#" t-on-click.prevent="goToDashboard">Performance Audit</a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <a href="#" t-on-click.prevent="openFieldTriggerWizard">Field Trigger Tree</a>
+                        </li>
+                        <li class="breadcrumb-item active" aria-current="page">
+                            <t t-esc="props.action.params.model"/>.<t t-esc="props.action.params.field_name"/>
+                        </li>
+                    </ol>
+                </nav>
+            </div>
+            
+            <div class="mb-3">
+                <h3>Field Trigger Tree</h3>
+                <p class="text-muted">
+                    Visualizing dependencies for field: <strong t-esc="props.action.params.field_name"></strong> 
+                    on model: <strong t-esc="props.action.params.model"></strong>
+                </p>
+            </div>
+            
+            <t t-if="state.loading">
+                <div class="d-flex justify-content-center py-5">
+                    <div class="fa fa-spinner fa-spin fa-2x"></div>
+                    <div class="ms-2">Loading trigger tree data...</div>
+                </div>
+            </t>
+            
+            <t t-elif="state.error">
+                <div class="alert alert-danger" role="alert">
+                    <t t-esc="state.error"></t>
+                </div>
+            </t>
+            
+            <t t-else="">
+                <div t-ref="container" class="o_field_trigger_tree_container" style="height: 600px; width: 100%;"></div>
+                <div class="mt-3 text-center text-muted">
+                    <small>Tip: Use mouse wheel to zoom, drag to pan around the visualization</small>
+                </div>
+            </t>
+        </div>
+    </t>
+</templates> 

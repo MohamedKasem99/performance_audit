@@ -2,6 +2,7 @@
 
 import { Component, onMounted, useState } from "@odoo/owl";
 import { registry } from "@web/core/registry";
+import { useService } from "@web/core/utils/hooks";
 
 export class Dashboard extends Component {
     setup() {
@@ -13,13 +14,17 @@ export class Dashboard extends Component {
             biggest_table_size: 0,
             biggest_table_name: '',
         });
+        
+        this.rpc = useService("rpc");
+        this.action = useService("action");
+        
         this.loadDashboardData();
     }
 
     async loadDashboardData() {
         try {
             this.state.loading = true;
-            const result = await this.env.services.rpc(
+            const result = await this.rpc(
                 '/performance_audit/dashboard_data',
                 {}
             );
@@ -40,7 +45,7 @@ export class Dashboard extends Component {
     }
 
     async openAuditWizard() {
-        await this.env.services.action.doAction({
+        await this.action.doAction({
             type: 'ir.actions.act_window',
             name: 'Run Performance Audit',
             res_model: 'performance.audit.wizard',
@@ -48,6 +53,17 @@ export class Dashboard extends Component {
             views: [[false, 'form']],
             target: 'new',
             context: {},
+        });
+    }
+
+    openFieldTriggerTree() {
+        this.action.doAction({
+            type: 'ir.actions.act_window',
+            res_model: 'field.trigger.tree.wizard',
+            view_mode: 'form',
+            views: [[false, 'form']],
+            target: 'new',
+            name: 'Field Trigger Tree'
         });
     }
 }

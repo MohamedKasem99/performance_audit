@@ -52,6 +52,19 @@
                             </div>
                         </div>
                     </div>
+                    <div class="col-lg-6 col-12">
+                        <div class="card shadow-sm h-100 cursor-pointer">
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="card-title">Field Dependencies</h5>
+                                <p class="card-text flex-grow-1">
+                                    Visualize field dependencies and trigger trees to understand how fields affect each other.
+                                </p>
+                                <button class="btn btn-primary" t-on-click="openFieldTriggerTree">
+                                    <i class="fa fa-sitemap me-2"></i>Field Trigger Tree
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </t>
         </div>

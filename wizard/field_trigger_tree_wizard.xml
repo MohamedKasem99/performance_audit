@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_field_trigger_tree_wizard" model="ir.ui.view">
+        <field name="name">field.trigger.tree.wizard.form</field>
+        <field name="model">field.trigger.tree.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Field Trigger Tree">
+                <sheet>
+                    <group>
+                        <field name="model_id"/>
+                        <field name="field_id"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button string="View Trigger Tree" name="view_trigger_tree" type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_field_trigger_tree_wizard" model="ir.actions.act_window">
+        <field name="name">Field Trigger Tree</field>
+        <field name="res_model">field.trigger.tree.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo> 
