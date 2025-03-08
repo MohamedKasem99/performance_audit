@@ -9,16 +9,16 @@
                 <group>
                     <field name="name"/>
                     <field name="schema"/>
-                    <field name="table_size" widget="integer"/>
-                    <field name="index_size" widget="integer"/>
-                    <field name="toast_size" widget="integer"/>
+                    <field name="table_size_human"/>
+                    <field name="index_size_human"/>
+                    <field name="toast_size_human"/>
                 </group>
                 <notebook>
                     <page string="Column Sizes">
                         <field name="column_size_ids">
                             <tree default_order="size desc">
                                 <field name="name"/>
-                                <field name="size" widget="integer" sum="Total Size"/>
+                                <field name="size_human"/>
                             </tree>
                         </field>
                     </page>
@@ -35,9 +35,9 @@
         <tree create="false" edit="false">
             <field name="name"/>
             <field name="schema"/>
-            <field name="table_size" widget="integer" sum="Total Table Size"/>
-            <field name="index_size" widget="integer" sum="Total Index Size"/>
-            <field name="toast_size" widget="integer" sum="Total Toast Size"/>
+            <field name="table_size_human"/>
+            <field name="index_size_human"/>
+            <field name="toast_size_human"/>
         </tree>
     </field>
 </record>

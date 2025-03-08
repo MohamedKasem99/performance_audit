@@ -1,6 +1,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 from odoo import models, fields, api
 from collections import defaultdict
+import humanize
 
 class TableColumnSize(models.Model):
     _name = 'pa.table.column.size'
@@ -10,6 +11,8 @@ class TableColumnSize(models.Model):
     table_id = fields.Many2one('pa.table.size', required=True, ondelete='cascade')
     name = fields.Char('Column Name', required=True)
     size = fields.Integer('Size (bytes)', compute='_compute_size', store=True, readonly=True)
+    size_human = fields.Char('Size', compute='_compute_size_human', store=True, readonly=True,
+                            column_sortable='size')
 
     @api.depends('name')
     def _compute_size(self):
@@ -26,8 +29,11 @@ class TableColumnSize(models.Model):
             column_sizes = self.env.cr.fetchall()[0]
             for column, size in zip(columns, column_sizes):
                 column.size = size or 0
-                
 
+    @api.depends('size')
+    def _compute_size_human(self):
+        for record in self:
+            record.size_human = humanize.naturalsize(record.size)
 
 
 class TableSize(models.Model):
@@ -44,6 +50,22 @@ class TableSize(models.Model):
     toast_size = fields.Integer('TOAST Size')
     column_size_ids = fields.One2many('pa.table.column.size', 'table_id', string='Column Sizes', readonly=True)
     
+    # Human-readable sizes
+    table_size_human = fields.Char('Table Size', compute='_compute_human_sizes', store=True, readonly=True,
+                                 column_sortable='table_size')
+    index_size_human = fields.Char('Index Size', compute='_compute_human_sizes', store=True, readonly=True,
+                                 column_sortable='index_size')
+    toast_size_human = fields.Char('TOAST Size', compute='_compute_human_sizes', store=True, readonly=True,
+                                 column_sortable='toast_size')
+    total_size_human = fields.Char('Total Size', compute='_compute_human_sizes', store=True, readonly=True,
+                                 column_sortable='table_size,index_size,toast_size')
+
+    @api.depends('table_size', 'index_size', 'toast_size')
+    def _compute_human_sizes(self):
+        for record in self:
+            record.table_size_human = humanize.naturalsize(record.table_size)
+            record.index_size_human = humanize.naturalsize(record.index_size)
+            record.toast_size_human = humanize.naturalsize(record.toast_size)
 
     def capture_table_sizes(self):
         self.env.cr.execute("""
@@ -58,7 +80,7 @@ class TableSize(models.Model):
             WHERE schemaname NOT IN ('pg_catalog', 'information_schema')
             ORDER BY total_size DESC
         """)
-        
+
         tables_vals = []
         for row in self.env.cr.fetchall():
             table_vals = {
@@ -85,7 +107,7 @@ class TableSize(models.Model):
                     AND a.attnum > 0 
                     AND NOT a.attisdropped
             """, (table.schema, table.name))
-            
+
             columns = [row[0] for row in self.env.cr.fetchall()]
             # create a record for each column
             for column in columns:
