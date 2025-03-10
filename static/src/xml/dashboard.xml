@@ -47,8 +47,8 @@
                         <div class="card shadow-sm h-100 cursor-pointer" t-on-click="() => this.env.services.action.doAction('performance_audit.action_table_size')">
                             <div class="card-body text-center p-4">
                                 <h5 class="card-title text-muted mb-3">Biggest Table</h5>
-                                <p class="h1 text-primary mb-0 fw-bold"><t t-esc="state.biggest_table_size"/></p>
-                                <p class="text-muted mb-0"><t t-esc="state.biggest_table_name"/></p>
+                                <p class="h1 text-primary mb-0 fw-bold"><t t-esc="state.biggest_table_size_human"/></p>
+                                <h5 class="text-muted mb-0"><t t-esc="state.biggest_table_name"/></h5>
                             </div>
                         </div>
                     </div>

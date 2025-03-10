@@ -11,8 +11,7 @@ class TableColumnSize(models.Model):
     table_id = fields.Many2one('pa.table.size', required=True, ondelete='cascade')
     name = fields.Char('Column Name', required=True)
     size = fields.Integer('Size (bytes)', compute='_compute_size', store=True, readonly=True)
-    size_human = fields.Char('Size', compute='_compute_size_human', store=True, readonly=True,
-                            column_sortable='size')
+    size_human = fields.Char('Size', compute='_compute_size_human', store=True, readonly=True)
 
     @api.depends('name')
     def _compute_size(self):
@@ -35,6 +34,16 @@ class TableColumnSize(models.Model):
         for record in self:
             record.size_human = humanize.naturalsize(record.size)
 
+    @api.model
+    def web_search_read(self, domain, specification, offset=0, limit=None, order=None, count_limit=None):
+        """Override to handle human-readable field sorting properly"""
+        if order and 'size_human' in order:
+            order = order.replace('size_human', 'size')
+
+        return super(TableColumnSize, self).web_search_read(
+            domain, specification, offset=offset,
+            limit=limit, order=order, count_limit=count_limit
+        )
 
 class TableSize(models.Model):
     _name = 'pa.table.size'
@@ -51,14 +60,9 @@ class TableSize(models.Model):
     column_size_ids = fields.One2many('pa.table.column.size', 'table_id', string='Column Sizes', readonly=True)
     
     # Human-readable sizes
-    table_size_human = fields.Char('Table Size', compute='_compute_human_sizes', store=True, readonly=True,
-                                 column_sortable='table_size')
-    index_size_human = fields.Char('Index Size', compute='_compute_human_sizes', store=True, readonly=True,
-                                 column_sortable='index_size')
-    toast_size_human = fields.Char('TOAST Size', compute='_compute_human_sizes', store=True, readonly=True,
-                                 column_sortable='toast_size')
-    total_size_human = fields.Char('Total Size', compute='_compute_human_sizes', store=True, readonly=True,
-                                 column_sortable='table_size,index_size,toast_size')
+    table_size_human = fields.Char('Table Size', compute='_compute_human_sizes', store=True, readonly=True)
+    index_size_human = fields.Char('Index Size', compute='_compute_human_sizes', store=True, readonly=True)
+    toast_size_human = fields.Char('TOAST Size', compute='_compute_human_sizes', store=True, readonly=True)
 
     @api.depends('table_size', 'index_size', 'toast_size')
     def _compute_human_sizes(self):
@@ -66,6 +70,25 @@ class TableSize(models.Model):
             record.table_size_human = humanize.naturalsize(record.table_size)
             record.index_size_human = humanize.naturalsize(record.index_size)
             record.toast_size_human = humanize.naturalsize(record.toast_size)
+
+    @api.model
+    def web_search_read(self, domain, specification, offset=0, limit=None, order=None, count_limit=None):
+        """Override to handle human-readable field sorting properly"""
+        if order:
+            field_mapping = {
+                'table_size_human': 'table_size',
+                'index_size_human': 'index_size',
+                'toast_size_human': 'toast_size',
+            }
+
+            for human_field, numeric_field in field_mapping.items():
+                if human_field in order:
+                    order = order.replace(human_field, numeric_field)
+
+        return super(TableSize, self).web_search_read(
+            domain, specification, offset=offset,
+            limit=limit, order=order, count_limit=count_limit
+        )
 
     def capture_table_sizes(self):
         self.env.cr.execute("""

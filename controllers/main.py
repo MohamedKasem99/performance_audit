@@ -9,7 +9,7 @@ class PerformanceAuditDashboardController(http.Controller):
             'slow_filter_count': request.env['pa.slow.filter'].search_count([]),
             'slow_request_count': request.env['pa.slow.request'].search_count([]),
             'slow_cron_count': request.env['pa.cron.audit'].search_count([]),
-            'biggest_table_size': biggest_table.table_size,
+            'biggest_table_size_human': biggest_table.table_size_human,
             'biggest_table_name': biggest_table.name,
         }
 

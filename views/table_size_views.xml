@@ -34,7 +34,6 @@
     <field name="arch" type="xml">
         <tree create="false" edit="false">
             <field name="name"/>
-            <field name="schema"/>
             <field name="table_size_human"/>
             <field name="index_size_human"/>
             <field name="toast_size_human"/>
