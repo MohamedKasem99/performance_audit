@@ -19,6 +19,7 @@
                             <tree default_order="size desc">
                                 <field name="name"/>
                                 <field name="size_human"/>
+                                <field name="size"/>
                             </tree>
                         </field>
                     </page>

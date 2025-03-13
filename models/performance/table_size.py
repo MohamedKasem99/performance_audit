@@ -54,9 +54,9 @@ class TableSize(models.Model):
     schema = fields.Char('Schema Name', required=True, default='public')
     
     # Sizes in bytes
-    table_size = fields.Integer('Table Size')
-    index_size = fields.Integer('Index Size')
-    toast_size = fields.Integer('TOAST Size')
+    table_size = fields.Integer('Table Size (bytes)')
+    index_size = fields.Integer('Index Size (bytes)')
+    toast_size = fields.Integer('TOAST Size (bytes)')
     column_size_ids = fields.One2many('pa.table.column.size', 'table_id', string='Column Sizes', readonly=True)
     
     # Human-readable sizes
