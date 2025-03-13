@@ -36,6 +36,7 @@ class PerformanceAuditWizard(models.TransientModel):
     batch_size = fields.Integer(string='Batch Size', default=5)
     offset = fields.Integer(string='Starting Offset', default=0)
     table_size = fields.Boolean(string='Table Size')
+    automation_audit = fields.Boolean(string='Automation Audit')
 
     def _process_log_file(self, log_file, log_file_name):
         log_file = base64.b64decode(log_file)
@@ -65,10 +66,17 @@ class PerformanceAuditWizard(models.TransientModel):
 
         if self.table_size:
             _logger.info("Capturing table sizes")
+            self.env["pa.table.size"].search([]).unlink()
             self.env["pa.table.size"].capture_table_sizes()
+
+        if self.automation_audit:
+            _logger.info("Auditing automation rules")
+            self.env["pa.automation.audit"].search([]).unlink()
+            self.env["pa.automation.audit"].run_audit()
 
         if self.slow_filters:
             _logger.info("Auditing filters")
+            self.env["pa.slow.filter"].search([]).unlink()
             return {
                 'type': 'ir.actions.client',
                 'tag': 'pa_slow_filter_audit',

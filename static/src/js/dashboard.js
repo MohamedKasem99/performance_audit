@@ -11,6 +11,7 @@ export class Dashboard extends Component {
             slow_filter_count: 0,
             slow_request_count: 0,
             slow_cron_count: 0,
+            automation_audit_count: 0,
             biggest_table_size_human: '0 Bytes',
             biggest_table_name: '',
         });
@@ -34,6 +35,7 @@ export class Dashboard extends Component {
                 this.state.slow_filter_count = result.slow_filter_count || 0;
                 this.state.slow_request_count = result.slow_request_count || 0;
                 this.state.slow_cron_count = result.slow_cron_count || 0;
+                this.state.automation_audit_count = result.automation_audit_count || 0;
                 this.state.biggest_table_size_human = result.biggest_table_size_human || '0 Bytes';
                 this.state.biggest_table_name = result.biggest_table_name || '';
             }

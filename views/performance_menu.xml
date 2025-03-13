@@ -63,6 +63,12 @@
               sequence="40"
               action="action_field_trigger_tree_wizard"/>
 
+    <menuitem id="menu_automation_audit"
+              name="Automation Rules Audit"
+              parent="menu_performance"
+              sequence="40"
+              action="action_automation_audit"/>
+
     <menuitem id="menu_run_audit_wizard"
               name="Run Audit"
               parent="menu_performance"

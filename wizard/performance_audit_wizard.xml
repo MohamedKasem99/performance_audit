@@ -14,6 +14,7 @@
                                 <field name="table_size"/>
                             </group>
                             <group>
+                                <field name="automation_audit"/>
                                 <field name="slow_filters"/>
                                 <field name="batch_size" invisible="not slow_filters"/>
                                 <field name="offset" invisible="not slow_filters"/>

@@ -5,3 +5,4 @@ from .performance import slow_filter
 from .performance import slow_request
 from .performance import cron_audit
 from .performance import table_size
+from .performance import automation_audit

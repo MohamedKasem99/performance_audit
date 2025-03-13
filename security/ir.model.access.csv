@@ -18,3 +18,8 @@
 
 "access_performance_audit_wizard_user","Performance Audit Wizard","model_performance_audit_wizard","base.group_user",1,1,1,1
 "access_field_trigger_tree_wizard","Access Field Trigger Tree Wizard","model_field_trigger_tree_wizard","base.group_user",1,1,1,1
+
+"access_pa_automation_audit_user","Access Automation Audit","model_pa_automation_audit","base.group_user",1,1,1,1
+"access_pa_automation_audit_admin","Admin Access Automation Audit","model_pa_automation_audit","base.group_system",1,1,1,1
+"access_pa_automation_audit_issue_user","Access Automation Audit Issues","model_pa_automation_audit_issue","base.group_user",1,1,1,1
+"access_pa_automation_audit_issue_admin","Admin Access Automation Audit Issues","model_pa_automation_audit_issue","base.group_system",1,1,1,1

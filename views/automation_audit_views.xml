@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_automation_audit" model="ir.actions.act_window">
+        <field name="name">Automation Rule Audit</field>
+        <field name="res_model">pa.automation.audit</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No audit results found.
+            </p>
+            <p>
+                Run an audit to check performance issues in automation rules.
+            </p>
+        </field>
+    </record>
+
+    <record id="view_automation_audit_tree" model="ir.ui.view">
+        <field name="name">pa.automation.audit.tree</field>
+        <field name="model">pa.automation.audit</field>
+        <field name="arch" type="xml">
+            <tree string="Automation Rule Audit" decoration-danger="issue_count > 1" create="0" edit="0">
+                <field name="automation_rule_id"/>
+                <field name="model_id"/>
+                <field name="issue_count"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Automation Audit Form View -->
+    <record id="view_automation_audit_form" model="ir.ui.view">
+        <field name="name">pa.automation.audit.form</field>
+        <field name="model">pa.automation.audit</field>
+        <field name="arch" type="xml">
+            <form string="Automation Rule Audit" create="0" edit="0">
+                <sheet>
+                    <group>
+                        <field name="automation_rule_id"/>
+                        <field name="model_id"/>
+                        <field name="issue_count"/>
+                    </group>
+                    <notebook>
+                        <page string="Issues">
+                            <field name="issue_ids">
+                                <tree>
+                                    <field name="issue_type"/>
+                                    <field name="record_count"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_automation_audit_issue_form" model="ir.ui.view">
+        <field name="name">pa.automation.audit.issue.form</field>
+        <field name="model">pa.automation.audit.issue</field>
+        <field name="arch" type="xml">
+            <form string="Automation Rule Issue">
+                <sheet>
+                    <group>
+                        <field name="issue_type"/>
+                        <field name="record_count" invisible="issue_type != 'large_domain'"/>
+                        <field name="audit_id" invisible="1"/>
+                    </group>
+                    <notebook>
+                        <page string="Code Analysis">
+                            <group>
+                                <field name="code_snippet" widget="ace" options="{'mode': 'python'}" readonly="1"/>
+                                <field name="recommendation"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_automation_audit_search" model="ir.ui.view">
+        <field name="name">pa.automation.audit.search</field>
+        <field name="model">pa.automation.audit</field>
+        <field name="arch" type="xml">
+            <search string="Search Automation Audit">
+                <field name="automation_rule_id"/>
+                <field name="model_id"/>
+                <separator/>
+                <filter string="Has Issues" name="has_issues" domain="[('issue_count', '>=', 1)]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Automation Rule" name="group_by_rule" context="{'group_by': 'automation_rule_id'}"/>
+                    <filter string="Model" name="group_by_model" context="{'group_by': 'model_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+</odoo> 
