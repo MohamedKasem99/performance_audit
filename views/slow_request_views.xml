@@ -17,8 +17,9 @@
         <field name="name">slow.request.tree</field>
         <field name="model">pa.slow.request</field>
         <field name="arch" type="xml">
-            <tree string="Slow Requests" default_order="timestamp asc" create="0">
-                <field name="timestamp_utc"/>
+            <tree string="Slow Requests" default_order="start_timestamp asc" create="0">
+                <field name="end_timestamp_utc"/>
+                <field name="start_timestamp_utc"/>
                 <field name="body"/>
                 <field name="ip_address"/>
                 <field name="num_queries"/>
@@ -44,7 +45,7 @@
                 <group expand="0" string="Group By">
                     <filter string="IP Address" name="group_by_ip" domain="[]" context="{'group_by': 'ip_address'}"/>
                     <filter string="Body" name="group_by_body" domain="[]" context="{'group_by': 'body'}"/>
-                    <filter string="Date" name="group_by_date" domain="[]" context="{'group_by': 'timestamp:day'}"/>
+                    <filter string="Date" name="group_by_date" domain="[]" context="{'group_by': 'start_timestamp:day'}"/>
                 </group>
             </search>
         </field>
@@ -57,7 +58,8 @@
             <form string="Slow Request Form" create="0" edit="0">
                 <sheet>
                     <group>
-                        <field name="timestamp_utc"/>
+                        <field name="end_timestamp_utc"/>
+                        <field name="start_timestamp_utc"/>
                         <field name="body"/>
                         <field name="ip_address"/>
                         <field name="num_queries"/>
