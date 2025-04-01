@@ -1,7 +1,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 from odoo import models, fields, api
 from collections import defaultdict
-import humanize
+from ...utils import human_size
 
 class TableColumnSize(models.Model):
     _name = 'pa.table.column.size'
@@ -32,7 +32,7 @@ class TableColumnSize(models.Model):
     @api.depends('size')
     def _compute_size_human(self):
         for record in self:
-            record.size_human = humanize.naturalsize(record.size)
+            record.size_human = human_size(record.size)
 
     @api.model
     def web_search_read(self, domain, specification, offset=0, limit=None, order=None, count_limit=None):
@@ -67,9 +67,9 @@ class TableSize(models.Model):
     @api.depends('table_size', 'index_size', 'toast_size')
     def _compute_human_sizes(self):
         for record in self:
-            record.table_size_human = humanize.naturalsize(record.table_size)
-            record.index_size_human = humanize.naturalsize(record.index_size)
-            record.toast_size_human = humanize.naturalsize(record.toast_size)
+            record.table_size_human = human_size(record.table_size)
+            record.index_size_human = human_size(record.index_size)
+            record.toast_size_human = human_size(record.toast_size)
 
     @api.model
     def web_search_read(self, domain, specification, offset=0, limit=None, order=None, count_limit=None):
