@@ -16,11 +16,11 @@
                 <notebook>
                     <page string="Column Sizes">
                         <field name="column_size_ids">
-                            <tree default_order="size desc">
+                            <list default_order="size desc">
                                 <field name="name"/>
                                 <field name="size_human"/>
                                 <field name="size"/>
-                            </tree>
+                            </list>
                         </field>
                     </page>
                 </notebook>
@@ -33,19 +33,19 @@
     <field name="name">pa.table.size.tree</field>
     <field name="model">pa.table.size</field>
     <field name="arch" type="xml">
-        <tree create="false" edit="false">
+        <list create="false" edit="false">
             <field name="name"/>
             <field name="table_size_human"/>
             <field name="index_size_human"/>
             <field name="toast_size_human"/>
-        </tree>
+        </list>
     </field>
 </record>
 
 <record id="action_table_size" model="ir.actions.act_window">
     <field name="name">Table Sizes</field>
     <field name="res_model">pa.table.size</field>
-    <field name="view_mode">tree,form</field>
+    <field name="view_mode">list,form</field>
     <field name="help" type="html">
         <p class="o_view_nocontent_smiling_face">
             No table size measurements yet

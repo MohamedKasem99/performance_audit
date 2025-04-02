@@ -2,7 +2,7 @@
     <record id="action_slow_cron" model="ir.actions.act_window">
         <field name="name">Cron Audit</field>
         <field name="res_model">pa.cron.audit</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
             No slow crons are recorded
@@ -17,14 +17,14 @@
         <field name="name">slow.cron.tree</field>
         <field name="model">pa.cron.audit</field>
         <field name="arch" type="xml">
-            <tree string="Cron Audit" default_order="average_execution_time desc" create="0">
-                <field name="name"/>
+            <list string="Cron Audit" default_order="average_execution_time desc" create="0">
+                <field name="name" width="500px"/>
                 <field name="average_execution_time" string="Average Execution Time (s)"/>
                 <field name="slowest_execution_duration" string="Slowest Execution Duration (s)"/>
                 <field name="num_timeouts"/>
                 <field name="num_failures"/>
                 <field name="total_executions"/>
-            </tree>
+            </list>
         </field>
     </record>
 
@@ -48,13 +48,13 @@
                     <notebook>
                         <page string="Executions">
                             <field name="execution_ids">
-                                <tree string="Executions" create="0" order="timestamp desc">
+                                <list string="Executions" create="0" order="timestamp desc">
                                     <field name="timestamp_utc" string="Timestamp UTC"/>
                                     <field name="duration" string="Duration (s)"/>
                                     <field name="is_timeout" string="Is Timeout"/>
                                     <field name="is_failure" string="Is Failure"/>
                                     <field name="failed_at_utc" string="Failed At UTC"/>
-                                </tree>
+                                </list>
                             </field>
                         </page>
                     </notebook>

@@ -3,6 +3,7 @@
 import { Component, onMounted, useState } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
+import { rpc } from "@web/core/network/rpc";
 
 export class Dashboard extends Component {
     setup() {
@@ -16,7 +17,6 @@ export class Dashboard extends Component {
             biggest_table_name: '',
         });
         
-        this.rpc = useService("rpc");
         this.action = useService("action");
         
         this.loadDashboardData();
@@ -25,10 +25,7 @@ export class Dashboard extends Component {
     async loadDashboardData() {
         try {
             this.state.loading = true;
-            const result = await this.rpc(
-                '/performance_audit/dashboard_data',
-                {}
-            );
+            const result = await rpc("/performance_audit/dashboard_data");
             
             // Update state with fetched data
             if (result) {

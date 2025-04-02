@@ -18,7 +18,7 @@
     <record id="action_slow_filter" model="ir.actions.act_window">
         <field name="name">Slow Filters</field>
         <field name="res_model">pa.slow.filter</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
     </record>
 
     <menuitem id="menu_slow_filter"
@@ -36,7 +36,7 @@
     <record id="action_slow_cron" model="ir.actions.act_window">
         <field name="name">Cron Audit</field>
         <field name="res_model">pa.cron.audit</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
     </record>
 
     <menuitem id="menu_slow_cron"

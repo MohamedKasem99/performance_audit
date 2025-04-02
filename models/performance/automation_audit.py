@@ -78,7 +78,7 @@ class AutomationRuleAudit(models.Model):
             'type': 'ir.actions.act_window',
             'name': _('Automation Rule Audit Results'),
             'res_model': 'pa.automation.audit',
-            'view_mode': 'tree,form',
+            'view_mode': 'list,form',
         }
 
     @api.model

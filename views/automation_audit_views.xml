@@ -3,7 +3,7 @@
     <record id="action_automation_audit" model="ir.actions.act_window">
         <field name="name">Automation Rule Audit</field>
         <field name="res_model">pa.automation.audit</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 No audit results found.
@@ -18,11 +18,11 @@
         <field name="name">pa.automation.audit.tree</field>
         <field name="model">pa.automation.audit</field>
         <field name="arch" type="xml">
-            <tree string="Automation Rule Audit" decoration-danger="issue_count > 1" create="0" edit="0">
+            <list string="Automation Rule Audit" decoration-danger="issue_count > 1" create="0" edit="0">
                 <field name="automation_rule_id"/>
                 <field name="model_id"/>
                 <field name="issue_count"/>
-            </tree>
+            </list>
         </field>
     </record>
 
@@ -41,10 +41,10 @@
                     <notebook>
                         <page string="Issues">
                             <field name="issue_ids">
-                                <tree>
+                                <list>
                                     <field name="issue_type"/>
                                     <field name="record_count"/>
-                                </tree>
+                                </list>
                             </field>
                         </page>
                     </notebook>
