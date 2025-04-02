@@ -43,6 +43,7 @@
                             <field name="num_timeouts" string="Number of Errors/Timeouts"/>
                             <field name="num_failures" string="Number of Failures"/>
                             <field name="total_executions" string="Total Executions"/>
+                            <field name="first_failure_date" string="First Failure Date"/>
                         </group>
                     </group>
                     <notebook>
@@ -52,8 +53,6 @@
                                     <field name="timestamp_utc" string="Timestamp UTC"/>
                                     <field name="duration" string="Duration (s)"/>
                                     <field name="is_timeout" string="Is Timeout"/>
-                                    <field name="is_failure" string="Is Failure"/>
-                                    <field name="failed_at_utc" string="Failed At UTC"/>
                                 </list>
                             </field>
                         </page>

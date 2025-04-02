@@ -15,8 +15,6 @@ class CronExecution(models.Model):
     timestamp = fields.Datetime('Timestamp')
     timestamp_utc = fields.Char('Timestamp UTC', compute='_compute_timestamp_utc')
     is_timeout = fields.Boolean('Is Timeout')
-    is_failure = fields.Boolean('Is Failure', default=False)
-    failed_at_utc = fields.Char('Failed At UTC')
 
     @api.depends('timestamp')
     def _compute_timestamp_utc(self):
@@ -37,7 +35,8 @@ class CronAudit(models.Model):
     slowest_execution_duration = fields.Float('Slowest Execution Duration', compute='_compute_stats', store=True)
     slowest_execution_utc = fields.Char('Last Execution UTC', compute='_compute_stats', store=True)
     num_timeouts = fields.Integer('Number of Errors/Timeouts', compute='_compute_stats', store=True)
-    num_failures = fields.Integer('Number of Failures', compute='_compute_stats', store=True)
+    num_failures = fields.Integer('Number of Failures', related='cron_id.failure_count', store=True)
+    first_failure_date = fields.Char('First Failure Date', compute='_compute_first_failure_date', store=True)
 
     @api.depends('execution_ids')
     def _compute_stats(self):
@@ -49,7 +48,11 @@ class CronAudit(models.Model):
             cron.slowest_execution_duration = slowest_execution.duration
             cron.slowest_execution_utc = fields.Datetime.to_string(slowest_execution.timestamp) + ' UTC'
             cron.num_timeouts = sum(1 for execution in cron.execution_ids if execution.is_timeout)
-            cron.num_failures = sum(1 for execution in cron.execution_ids if execution.is_failure)
+
+    @api.depends('cron_id.first_failure_date')
+    def _compute_first_failure_date(self):
+        for cron in self:
+            cron.first_failure_date = str(cron.cron_id.first_failure_date) + " UTC" if cron.cron_id.first_failure_date else None
 
     def audit_crons(self, logs):
         cron_line = re.compile(r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3}.*(job|Job)")
@@ -63,21 +66,14 @@ class CronAudit(models.Model):
             re.compile(r"(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}),\d{3}.* (?P<pid>\d+) INFO .*Job done: `(?P<cron_name>.+?)` \((?P<duration>[0-9\.]+)s\)\."),
             re.compile(r"(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}),\d{3}.* (?P<pid>\d+) INFO .*Job '(?P<cron_name>.+?)' \(\d+\) done in (?P<duration>[0-9\.]+)s")
         ]
-            #2025-02-24 11:44:10,953 55370 ERROR almajalbh-aeen-dorah-production-16551306 odoo.addons.base.models.ir_cron: Call from cron Payroll: Generate pdfs for server action #926 failed in Job #50 
-        failure_patterns = [
-            re.compile(r"(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}),\d{3}.* (?P<pid>\d+) ERROR .*Call from cron (?P<cron_name>.+?) for server action.*"),
-            re.compile(r"(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}),\d{3}.* (?P<pid>\d+) ERROR .*Call from cron (?P<cron_name>.+?) for server action.*"),
-            re.compile(r"(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}),\d{3}.* (?P<pid>\d+) ERROR .*Call from cron (?P<cron_name>.+?) for server action.*"),
-        ]
 
         cron_executions = defaultdict(list)  # To store execution data for each cron
         active_crons = {}  # To track active crons by name
         for line in logs.readlines():
             if cron_line.search(line):
-                for start_pattern, end_pattern, failure_pattern in zip(start_patterns, end_patterns, failure_patterns):
+                for start_pattern, end_pattern in zip(start_patterns, end_patterns):
                     start_match = start_pattern.search(line)
                     end_match = end_pattern.search(line)
-                    failure_match = failure_pattern.search(line)
                     if start_match:
                         cron_name = start_match.group("cron_name")
                         timestamp = datetime.strptime(start_match.group("timestamp"), "%Y-%m-%d %H:%M:%S")
@@ -85,19 +81,8 @@ class CronAudit(models.Model):
                             cron_executions[cron_name].append({
                                 "timestamp": active_crons[cron_name],
                                 "is_timeout": True,
-                                "is_failure": False,
                             })
                         active_crons[cron_name] = timestamp
-                        break
-                    if failure_match:
-                        cron_name = failure_match.group("cron_name")
-                        start_timestamp = active_crons.pop(cron_name)
-                        cron_executions[cron_name].append({
-                            "timestamp": start_timestamp,
-                            "is_timeout": False,
-                            "is_failure": True,
-                            "failed_at_utc": failure_match.group("timestamp") + ' UTC',
-                        })
                         break
                     if end_match:
                         cron_name = end_match.group("cron_name")
@@ -113,7 +98,6 @@ class CronAudit(models.Model):
                                     "timestamp": start_time,
                                     "duration": duration,
                                     "is_timeout": False,
-                                    "is_failure": False,
                                 }
                             )
                         break
