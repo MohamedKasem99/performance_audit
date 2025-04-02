@@ -27,12 +27,6 @@
               sequence="30"
               action="action_slow_filter"/>
 
-    <record id="action_slow_request" model="ir.actions.act_window">
-        <field name="name">Slow Requests</field>
-        <field name="res_model">pa.slow.request</field>
-        <field name="view_mode">tree,form</field>
-    </record>
-
     <menuitem id="menu_slow_request"
               name="Slow Requests"
               parent="menu_performance"
