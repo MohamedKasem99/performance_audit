@@ -22,6 +22,7 @@
                 <field name="average_execution_time" string="Average Execution Time (s)"/>
                 <field name="slowest_execution_duration" string="Slowest Execution Duration (s)"/>
                 <field name="num_timeouts"/>
+                <field name="num_failures"/>
                 <field name="total_executions"/>
             </tree>
         </field>
@@ -40,6 +41,7 @@
                             <field name="slowest_execution_utc" string="Slowest Execution UTC"/>
                             <field name="slowest_execution_duration" string="Slowest Execution Duration (s)"/>
                             <field name="num_timeouts" string="Number of Errors/Timeouts"/>
+                            <field name="num_failures" string="Number of Failures"/>
                             <field name="total_executions" string="Total Executions"/>
                         </group>
                     </group>
@@ -50,6 +52,8 @@
                                     <field name="timestamp_utc" string="Timestamp UTC"/>
                                     <field name="duration" string="Duration (s)"/>
                                     <field name="is_timeout" string="Is Timeout"/>
+                                    <field name="is_failure" string="Is Failure"/>
+                                    <field name="failed_at_utc" string="Failed At UTC"/>
                                 </tree>
                             </field>
                         </page>
