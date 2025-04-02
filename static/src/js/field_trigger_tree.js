@@ -2,6 +2,7 @@
 
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
+import { rpc } from "@web/core/network/rpc";
 import { Component, onMounted, useState, useRef, onPatched } from "@odoo/owl";
 
 class FieldTriggerTree extends Component {
@@ -14,7 +15,6 @@ class FieldTriggerTree extends Component {
         });
 
         this.containerRef = useRef("container");
-        this.rpc = useService("rpc");
         this.actionService = useService("action");
 
         onMounted(() => {
@@ -61,7 +61,7 @@ class FieldTriggerTree extends Component {
 
         try {
             console.debug("Making RPC call");
-            const result = await this.rpc("/performance_audit/get_field_trigger_tree", {
+            const result = await rpc("/performance_audit/get_field_trigger_tree", {
                 model: model,
                 field_name: field_name,
             });
