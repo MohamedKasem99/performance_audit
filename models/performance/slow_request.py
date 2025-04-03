@@ -15,7 +15,7 @@ LOG_PATTERN = re.compile(
     r"(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}),\d{3}\s"
     r"(?P<pid>\d+)\s"
     r"(?P<log_level>[A-Z]+)\s"
-    r"(?P<db>[\w-]+)\s"
+    r".*"
     r"(?P<logger>[\w:]+):\s"
     r"(?P<ip_address>[\d.]+)\s-\s-\s\[.*\]\s"
     r"\"(?P<body>.+?)\"\s\d+\s-\s"
