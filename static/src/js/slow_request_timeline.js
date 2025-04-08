@@ -13,7 +13,8 @@ export class SlowRequestTimeline extends Component {
             availableDates: [],
             noData: false,
             error: null,
-            libraryLoaded: false
+            libraryLoaded: false,
+            currentFilter: 'all'
         });
 
         this.rpc = useService("rpc");
@@ -54,15 +55,10 @@ export class SlowRequestTimeline extends Component {
 
     loadVisTimeline() {
         if (window.vis) {
-            console.debug("vis-timeline already loaded");
             this.state.libraryLoaded = true;
             this.initTimeline();
             return;
         }
-
-        console.debug("Loading vis-timeline library");
-
-        // Load CSS
         const link = document.createElement('link');
         link.rel = 'stylesheet';
         link.href = 'https://cdn.jsdelivr.net/npm/vis-timeline@7.7.2/dist/vis-timeline-graph2d.min.css';
@@ -72,7 +68,6 @@ export class SlowRequestTimeline extends Component {
         const script = document.createElement('script');
         script.src = 'https://cdn.jsdelivr.net/npm/vis-timeline@7.7.2/dist/vis-timeline-graph2d.min.js';
         script.onload = () => {
-            console.debug("vis-timeline loaded successfully");
             this.state.libraryLoaded = true;
             this.initTimeline();
         };
@@ -84,107 +79,30 @@ export class SlowRequestTimeline extends Component {
     }
 
     initTimeline() {
-        if (this.state.noData || !this.containerRef.el || !this.state.libraryLoaded || !window.vis) {
-            return;
-        }
-
-        if (this.timeline) {
-            this.timeline.destroy();
-        }
-
-        // Create vis.js datasets
-        const items = new window.vis.DataSet(this.state.timelineData);
-        const groups = new window.vis.DataSet(
-            this.state.availableDates.map(group => ({
-                id: group,
-                content: group
-            }))
-        );
-
-        // Create the timeline
-        this.timeline = new window.vis.Timeline(
-            this.containerRef.el,
-            items,
-            groups,
-            {
-                stack: true,
-                maxHeight: '80vh',
-                horizontalScroll: true,
-                zoomKey: 'ctrlKey',
-                orientation: {axis: 'top', item: 'top'}
-            }
-        );
-
-        // Add click handler
-        this.timeline.on('doubleClick', (properties) => {
-            if (properties.item) {
-                const item = items.get(properties.item);
-                this.action.doAction({
-                    type: 'ir.actions.act_window',
-                    res_model: 'pa.slow.request',
-                    res_id: item.id,
-                    views: [[false, 'form']],
-                    target: 'current',
-                });
-            }
-        });
-
-        // Fit to window
-        this.timeline.fit();
-    }
-
-    zoomFit() {
-        if (this.timeline) {
-            this.timeline.fit();
-        }
-    }
-
-    async refreshData() {
-        await this.loadData();
-        this.initTimeline();
-    }
-
-    filterByDate(event) {
-        const selectedDate = event.target.value;
-        
-        if (!this.timeline || !this.containerRef.el) {
+        if (this.state.noData) {
             return;
         }
         
+        const itemsData = this.state.timelineData;
+        const groupsData = this.state.availableDates.map(group => ({
+            id: group,
+            content: group
+        }));
+        
+        this.createTimeline(itemsData, groupsData);
+    }
+
+    createTimeline(itemsData, groupsData, timeWindow = null) {
         if (this.timeline) {
             this.timeline.destroy();
             this.timeline = null;
         }
-        
-        let itemsData = [];
-        let groupsData = [];
-        
-        if (selectedDate === 'all') {
-            // Use all timeline data
-            itemsData = this.state.timelineData;
-            groupsData = this.state.availableDates.map(date => ({
-                id: date,
-                content: date
-            }));
-        } else if (this.state.groupedData[selectedDate]) {
-            // Use only data for the selected date
-            itemsData = this.state.groupedData[selectedDate];
-            groupsData = [{
-                id: selectedDate,
-                content: selectedDate
-            }];
-        } else {
-            // No data for this date
-            this.containerRef.el.innerHTML = '<div class="alert alert-info">No requests found for the selected date.</div>';
-            return;
+
+        if (!itemsData || itemsData.length === 0) {
+            this.containerRef.el.innerHTML = '<div class="alert alert-info">No requests found for the selected filter.</div>';
+            return null;
         }
         
-        if (itemsData.length === 0) {
-            this.containerRef.el.innerHTML = '<div class="alert alert-info">No requests found for the selected date.</div>';
-            return;
-        }
-        
-        // Create the datasets and timeline
         const items = new window.vis.DataSet(itemsData);
         const groups = new window.vis.DataSet(groupsData);
         
@@ -200,21 +118,72 @@ export class SlowRequestTimeline extends Component {
                 orientation: {axis: 'top', item: 'top'}
             }
         );
+        this.timeline.on('doubleClick', (properties) => {
+            if (properties.item) {
+                const item = items.get(properties.item);
+                this.action.doAction({
+                    type: 'ir.actions.act_window',
+                    res_model: 'pa.slow.request',
+                    res_id: item.id,
+                    views: [[false, 'form']],
+                    target: 'current',
+                });
+            }
+        });
         
-        // If a specific date is selected, set window to that date
-        if (selectedDate !== 'all') {
+        if (timeWindow) {
+            this.timeline.setWindow(timeWindow.start, timeWindow.end);
+        } else {
+            this.timeline.fit();
+        }
+        
+        return this.timeline;
+    }
+
+    filterByDate(event) {
+        const selectedDate = event.target.value;
+        this.state.currentFilter = selectedDate;
+        
+        let itemsData, groupsData, timeWindow = null;
+        
+        if (selectedDate === 'all') {
+            // Use all timeline data
+            itemsData = this.state.timelineData;
+            groupsData = this.state.availableDates.map(date => ({
+                id: date,
+                content: date
+            }));
+        } else if (this.state.groupedData[selectedDate]) {
+            // Use only data for the selected date
+            itemsData = this.state.groupedData[selectedDate];
+            groupsData = [{
+                id: selectedDate,
+                content: selectedDate
+            }];
+            
+            // Set window to the selected date's timeframe
             const [year, month, day] = selectedDate.split('-');
             const date = new Date(year, month - 1, day);
             
-            const startDate = new Date(date);
-            startDate.setHours(0, 0, 0, 0);
-            
-            const endDate = new Date(date);
-            endDate.setHours(23, 59, 59, 999);
-            
-            this.timeline.setWindow(startDate, endDate);
+            timeWindow = {
+                start: new Date(date.setHours(0, 0, 0, 0)),
+                end: new Date(new Date(date).setHours(23, 59, 59, 999))
+            };
         } else {
-            // Fit all data to view
+            // No data for this date
+            if (this.timeline) {
+                this.timeline.destroy();
+                this.timeline = null;
+            }
+            this.containerRef.el.innerHTML = '<div class="alert alert-info">No requests found for the selected date.</div>';
+            return;
+        }
+        
+        this.createTimeline(itemsData, groupsData, timeWindow);
+    }
+
+    zoomFit() {
+        if (this.timeline) {
             this.timeline.fit();
         }
     }
