@@ -68,4 +68,15 @@
               parent="menu_performance"
               sequence="50"
               action="action_performance_audit_wizard"/>
+
+    <record id="action_slow_request_timeline" model="ir.actions.client">
+        <field name="name">Requests Timeline</field>
+        <field name="tag">performance_audit.slow_request_timeline</field>
+    </record>
+
+    <menuitem id="menu_slow_request_timeline"
+              name="Requests Timeline"
+              parent="menu_performance"
+              sequence="45"
+              action="action_slow_request_timeline"/>
 </odoo>

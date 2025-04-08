@@ -1,0 +1,21 @@
+.o_slow_request_timeline {
+    .timeline-container {
+        height: 80vh;
+        margin: 20px;
+    }
+    
+    // vis-timeline styling
+    .vis-item {
+        border-color: #97B0F8;
+        background-color: #D5DDF6;
+        font-size: 12px;
+        &.vis-selected {
+            border-color: #FFC200;
+            background-color: #FFF785;
+        }
+    }
+    
+    .vis-time-axis .vis-text {
+        font-size: 10px;
+    }
+} 
