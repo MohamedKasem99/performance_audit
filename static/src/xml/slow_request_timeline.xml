@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="performance_audit.SlowRequestTimeline" owl="1">
+        <div class="o_slow_request_timeline">
+            <div class="o_control_panel">
+                <div class="o_cp_top">
+                    <div class="o_cp_top_left">
+                        <h1>Slow Requests Timeline</h1>
+                    </div>
+                    <div class="o_cp_top_right">
+                        <div class="btn-group me-2">
+                            <!-- Date selector -->
+                            <select class="form-select me-2" t-on-change="filterByDate" aria-label="Filter by date">
+                                <option value="all">All Dates</option>
+                                <t t-foreach="state.availableDates" t-as="date" t-key="date">
+                                    <option t-att-value="date">
+                                        <t t-esc="date"/>
+                                    </option>
+                                </t>
+                            </select>
+                          
+                            <button class="btn btn-primary" t-on-click="zoomFit">
+                                <i class="fa fa-arrows-alt"/> Zoom Fit
+                            </button>
+                            <button class="btn btn-secondary" t-on-click="refreshData">
+                                <i class="fa fa-refresh"/> Refresh
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="o_content p-3">
+                <div t-if="state.loading" class="text-center py-5">
+                    <i class="fa fa-circle-o-notch fa-spin fa-3x text-muted"/>
+                    <p class="mt-2">Loading timeline data...</p>
+                </div>
+                
+                <div t-elif="state.error" class="alert alert-danger">
+                    <t t-esc="state.error"/>
+                </div>
+                
+                <div t-elif="state.noData" class="alert alert-info">
+                    No slow requests found.
+                </div>
+                
+                <div t-else="" class="timeline-container" t-ref="timelineContainer"></div>
+            </div>
+        </div>
+    </t>
+</templates> 
