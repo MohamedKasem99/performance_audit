@@ -28,10 +28,16 @@
                         </div>
                     </div>
                     <div class="col-lg-6 col-12">
-                        <div class="card shadow-sm h-100 cursor-pointer" t-on-click="() => this.env.services.action.doAction('performance_audit.action_slow_request')">
-                            <div class="card-body text-center p-4">
+                        <div class="card shadow-sm h-100">
+                            <div class="card-body text-center p-4 cursor-pointer" t-on-click="() => this.env.services.action.doAction('performance_audit.action_slow_request')">
                                 <h5 class="card-title text-muted mb-3">Slow Requests</h5>
                                 <p class="h1 text-primary mb-0 fw-bold"><t t-esc="state.slow_request_count"/></p>
+                            </div>
+                            <!-- New button for Timeline view -->
+                            <div class="card-footer bg-transparent text-center border-top-0 pt-0 pb-3">
+                                <button class="btn btn-outline-primary w-75" t-on-click="() => this.env.services.action.doAction('performance_audit.slow_request_timeline')">
+                                    <i class="fa fa-clock-o me-2"></i>Timeline View
+                                </button>
                             </div>
                         </div>
                     </div>
