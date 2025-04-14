@@ -1,21 +1,55 @@
 .o_slow_request_timeline {
-    .timeline-container {
-        height: 80vh;
-        margin: 20px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+
+    .o_control_panel {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+
+        .o_cp_top {
+            padding: 0.75rem 1rem;
+        }
+
+        .form-select {
+            min-width: 150px;
+            max-width: 200px;
+        }
+
+        .btn-primary {
+            min-width: 100px;
+        }
     }
-    
+
+    .o_content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        padding-bottom: 80px;
+    }
+
+    .timeline-container {
+        height: calc(100vh - 250px);
+        min-height: 400px;
+        margin: 0;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
     // vis-timeline styling
     .vis-item {
         border-color: #97B0F8;
         background-color: #D5DDF6;
         font-size: 12px;
+
         &.vis-selected {
             border-color: #FFC200;
             background-color: #FFF785;
         }
     }
-    
+
     .vis-time-axis .vis-text {
         font-size: 10px;
     }
-} 
+}

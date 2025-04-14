@@ -1,45 +1,69 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
     <t t-name="performance_audit.SlowRequestTimeline" owl="1">
+        <!-- Add vis.js dependencies directly -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vis-timeline@7.7.2/dist/vis-timeline-graph2d.min.css"/>
+        <script src="https://cdn.jsdelivr.net/npm/vis-timeline@7.7.2/dist/vis-timeline-graph2d.min.js"/>
+
         <div class="o_slow_request_timeline">
-            <div class="o_control_panel">
-                <div class="o_cp_top">
+            <div class="o_control_panel mb-3">
+                <div class="o_cp_top d-flex align-items-center justify-content-between p-3">
                     <div class="o_cp_top_left">
-                        <h1>Slow Requests Timeline</h1>
+                        <h1 class="m-0">Slow Requests Timeline</h1>
                     </div>
-                    <div class="o_cp_top_right">
-                        <div class="btn-group me-2">
-                            <!-- Date selector -->
-                            <select class="form-select me-2" t-on-change="filterByDate" aria-label="Filter by date">
+                    <div class="o_cp_top_right d-flex align-items-center">
+                        <!-- Date selector with fixed width and improved styling -->
+                        <div class="d-flex align-items-center">
+                            <select class="form-select me-2" style="width: 150px;" t-on-change="filterByDate" t-att-value="state.currentFilter" aria-label="Filter by date">
                                 <option value="all">All Dates</option>
                                 <t t-foreach="state.availableDates" t-as="date" t-key="date">
-                                    <option t-att-value="date">
+                                    <option t-att-value="date" t-att-selected="state.currentFilter === date">
                                         <t t-esc="date"/>
                                     </option>
                                 </t>
                             </select>
+                            <!-- Fixed width button with improved styling -->
                             <button class="btn btn-primary" t-on-click="zoomFit">
-                                <i class="fa fa-arrows-alt"/> Zoom Fit
+                                <i class="fa fa-arrows-alt me-1"/>
+ Fit View
                             </button>
                         </div>
                     </div>
                 </div>
+
+                <!-- Domain search bar -->
+                <div class="o_cp_bottom d-flex align-items-center p-2 pb-3">
+                    <div class="d-flex w-100 align-items-center">
+                        <label class="me-2 mb-0" for="domain_search">Domain:</label>
+                        <input id="domain_search" type="text" class="form-control me-2" t-model="state.domainFilter" placeholder="[('total_time', '>', 1)]" />
+                        <button class="btn btn-secondary" t-on-click="applyDomainFilter">
+                            <i class="fa fa-search me-1"/>
+ Search
+                        </button>
+                    </div>
+                </div>
             </div>
-            
+
             <div class="o_content p-3">
+                <!-- Rendering indicator moved here - between filter and content -->
+                <div t-if="state.rendering" class="text-center mb-3">
+                    <i class="fa fa-circle-o-notch fa-spin fa-2x text-muted"/>
+                    <span class="ms-2">Rendering timeline...</span>
+                </div>
+
                 <div t-if="state.loading" class="text-center py-5">
                     <i class="fa fa-circle-o-notch fa-spin fa-3x text-muted"/>
                     <p class="mt-2">Loading timeline data...</p>
                 </div>
-                
+
                 <div t-elif="state.error" class="alert alert-danger">
                     <t t-esc="state.error"/>
                 </div>
-                
+
                 <div t-elif="state.noData" class="alert alert-info">
                     No slow requests found.
                 </div>
-                
+
                 <div t-else="" class="timeline-container" t-ref="timelineContainer"></div>
             </div>
         </div>

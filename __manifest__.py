@@ -33,8 +33,6 @@
             'performance_audit/static/src/js/slow_request_timeline.js',
             'performance_audit/static/src/scss/field_trigger_tree.scss',
             'performance_audit/static/src/scss/slow_request_timeline.scss',
-            ('include', 'https://cdn.jsdelivr.net/npm/vis-timeline@7.7.0/dist/vis-timeline-graph2d.min.css'),
-            ('include', 'https://cdn.jsdelivr.net/npm/vis-timeline@7.7.0/dist/vis-timeline-graph2d.min.js'),
         ],
     },
 }
