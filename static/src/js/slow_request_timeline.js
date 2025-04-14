@@ -1,192 +1,351 @@
 /** @odoo-module **/
 
-import { Component, useRef, onMounted, onWillStart, useState } from "@odoo/owl";
+import { Component, useRef, onMounted, onWillStart, useState, onWillUnmount } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
+import { rpc } from "@web/core/network/rpc";
+
+const STORAGE_KEY_PREFIX = 'performance_audit_timeline_';
+const STORAGE_KEYS = {
+    FILTER: `${STORAGE_KEY_PREFIX}filter`,
+    WINDOW_START: `${STORAGE_KEY_PREFIX}window_start`,
+    WINDOW_END: `${STORAGE_KEY_PREFIX}window_end`
+};
+
+const TIMELINE_OPTIONS = {
+    stack: true,
+    maxHeight: '80vh',
+    zoomKey: 'ctrlKey',
+    verticalScroll: true,
+    horizontalScroll: true,
+    showTooltips: true,
+    multiselect: true,
+    autoResize: true,
+    orientation: { axis: 'both', item: 'top' },
+    tooltip: { followMouse: true },
+    moveable: true,
+    zoomable: true,
+    selectable: true,
+    throttleRedraw: 16
+};
 
 export class SlowRequestTimeline extends Component {
     setup() {
         this.state = useState({
             loading: true,
-            timelineData: [],
+            rendering: false,
             groupedData: {},
             availableDates: [],
             noData: false,
             error: null,
-            libraryLoaded: false,
-            currentFilter: 'all'
+            currentFilter: this._getStoredValue(STORAGE_KEYS.FILTER, 'all'),
+            savedWindow: this._getSavedWindowPosition(),
+            domainFilter: this._getStoredValue(STORAGE_KEYS.DOMAIN_FILTER, ''),
+            libraryReady: false
         });
 
-        this.rpc = useService("rpc");
-        this.containerRef = useRef("timelineContainer");
         this.action = useService("action");
+        this.containerRef = useRef("timelineContainer");
+
         this.timeline = null;
+        this._items = null;
 
-        onWillStart(async () => {
-            await this.loadData();
-        });
-
-        onMounted(() => {
-            this.loadVisTimeline();
-        });
+        onWillStart(async () => await this._fetchData(this.state.domainFilter));
+        onMounted(() => this._waitForVisLibrary());
+        onWillUnmount(() => this._cleanupResources());
     }
 
-    async loadData() {
+    _waitForVisLibrary() {
+        const checkLibrary = () => {
+            if (window.vis) {
+                this.state.libraryReady = true;
+                this._initTimeline();
+            } else {
+                setTimeout(checkLibrary, 50);
+            }
+        };
+
+        checkLibrary();
+    }
+
+    async _fetchData(domain = null) {
         try {
             this.state.loading = true;
-            const result = await this.rpc("/performance_audit/slow_requests_data");
-            
-            // Use pre-formatted data from the server
-            this.state.timelineData = result.all || [];
+            const result = await rpc("/performance_audit/slow_requests_data", { domain });
+            if (result.error) {
+                this.state.error = result.error;
+                this.state.noData = true;
+                // fail the promise
+                return Promise.reject(result.error);
+            }
             this.state.groupedData = result.byDate || {};
             this.state.availableDates = result.availableDates || [];
-            this.state.noData = !this.state.timelineData.length;
+
+            if (this.state.currentFilter !== 'all' &&
+                !this.state.availableDates.includes(this.state.currentFilter)) {
+                this.state.currentFilter = 'all';
+                this._storeValue(STORAGE_KEYS.FILTER, 'all');
+            }
+            this.state.noData = !this.state.availableDates.length;
         } catch (error) {
-            console.error("Failed to load slow request data:", error);
             this.state.error = "Failed to load request data: " + error.toString();
             this.state.noData = true;
-            this.state.timelineData = [];
-            this.state.groupedData = {};
-            this.state.availableDates = [];
         } finally {
             this.state.loading = false;
         }
     }
 
-    loadVisTimeline() {
-        if (window.vis) {
-            this.state.libraryLoaded = true;
-            this.initTimeline();
-            return;
-        }
-        const link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = 'https://cdn.jsdelivr.net/npm/vis-timeline@7.7.2/dist/vis-timeline-graph2d.min.css';
-        document.head.appendChild(link);
-
-        // Load JavaScript
-        const script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/npm/vis-timeline@7.7.2/dist/vis-timeline-graph2d.min.js';
-        script.onload = () => {
-            this.state.libraryLoaded = true;
-            this.initTimeline();
-        };
-        script.onerror = (e) => {
-            console.error("Failed to load vis-timeline", e);
-            this.state.error = "Failed to load vis-timeline library";
-        };
-        document.head.appendChild(script);
-    }
-
-    initTimeline() {
+    _initTimeline() {
         if (this.state.noData) {
+            this._showNoDataMessage(this.state.currentFilter);
             return;
         }
-        
-        const itemsData = this.state.timelineData;
-        const groupsData = this.state.availableDates.map(group => ({
-            id: group,
-            content: group
-        }));
-        
-        this.createTimeline(itemsData, groupsData);
+        this._applyFilter(this.state.currentFilter);
     }
 
-    createTimeline(itemsData, groupsData, timeWindow = null) {
+    _applyFilter(filterValue) {
+        const timelineData = this._prepareTimelineData(filterValue);
+
+        if (!timelineData) {
+            this._showNoDataMessage(filterValue);
+            return;
+        }
+
+        this._createTimeline(timelineData.items, timelineData.timeWindow);
+    }
+
+    _prepareTimelineData(filterValue) {
+        if (filterValue === 'all') {
+            return {
+                items: Object.values(this.state.groupedData).flat(),
+                timeWindow: null
+            };
+        }
+
+        if (this.state.groupedData[filterValue]) {
+            const [year, month, day] = filterValue.split('-');
+            const date = new Date(year, month - 1, day);
+
+            return {
+                items: this.state.groupedData[filterValue],
+                timeWindow: {
+                    start: new Date(new Date(date).setHours(0, 0, 0, 0)),
+                    end: new Date(new Date(date).setHours(23, 59, 59, 999))
+                }
+            };
+        }
+
+        return null;
+    }
+
+    _createTimeline(items, timeWindow = null) {
+        if (!items?.length) {
+            this._showNoDataMessage('all');
+            return null;
+        }
+
+        this._cleanupTimeline();
+
+        this._items = new window.vis.DataSet({ queue: { delay: 50 } });
+        this._items.add(items);
+
+        const options = {
+            ...TIMELINE_OPTIONS,
+            order: (a, b) => b.duration - a.duration
+        };
+
+        this.timeline = new window.vis.Timeline(
+            this.containerRef.el,
+            this._items,
+            options
+        );
+
+        this.timeline.on('doubleClick', this._handleDoubleClick.bind(this));
+        this.timeline.on('rangechanged', this._handleRangeChanged.bind(this));
+
+        this._restoreTimelinePosition(timeWindow);
+
+        return this.timeline;
+    }
+
+    _restoreTimelinePosition(timeWindow) {
+        if (this.state.savedWindow &&
+            (timeWindow === null || this.state.currentFilter !== 'all')) {
+            requestAnimationFrame(() => {
+                this.timeline.setWindow(this.state.savedWindow.start, this.state.savedWindow.end);
+            });
+        }
+        else if (timeWindow) {
+            this.timeline.setWindow(timeWindow.start, timeWindow.end);
+            this.state.rendering = true;
+            setTimeout(() => {
+                this.timeline.fit();
+                this.timeline.setWindow(timeWindow.start, timeWindow.end, {
+                    animation: false
+                });
+                this.state.rendering = false;
+            }, 200);
+        }
+        else {
+            this.state.rendering = true;
+            this.zoomFit(300);
+            this.state.rendering = false;
+        }
+    }
+
+    _handleDoubleClick(properties) {
+        if (!properties.item) return;
+
+        this._saveCurrentWindowPosition();
+
+        const item = this._items.get(properties.item);
+        this.action.doAction({
+            type: 'ir.actions.act_window',
+            res_model: 'pa.slow.request',
+            res_id: item.id,
+            views: [[false, 'form']],
+            target: 'current',
+        });
+    }
+
+    _handleRangeChanged(properties) {
+        this._storeValue(STORAGE_KEYS.WINDOW_START, properties.start.getTime());
+        this._storeValue(STORAGE_KEYS.WINDOW_END, properties.end.getTime());
+    }
+
+    _saveCurrentWindowPosition() {
+        if (!this.timeline) return;
+
+        const window = this.timeline.getWindow();
+        this._storeValue(STORAGE_KEYS.WINDOW_START, window.start.getTime());
+        this._storeValue(STORAGE_KEYS.WINDOW_END, window.end.getTime());
+    }
+
+    _cleanupTimeline() {
         if (this.timeline) {
+            this.timeline.off('doubleClick');
+            this.timeline.off('rangechanged');
             this.timeline.destroy();
             this.timeline = null;
         }
 
-        if (!itemsData || itemsData.length === 0) {
-            this.containerRef.el.innerHTML = '<div class="alert alert-info">No requests found for the selected filter.</div>';
-            return null;
+        if (this._items) {
+            this._items.clear();
+            this._items = null;
         }
-        
-        const items = new window.vis.DataSet(itemsData);
-        const groups = new window.vis.DataSet(groupsData);
-        
-        this.timeline = new window.vis.Timeline(
-            this.containerRef.el,
-            items,
-            groups,
-            {
-                stack: true,
-                maxHeight: '80vh',
-                horizontalScroll: true,
-                zoomKey: 'ctrlKey',
-                orientation: {axis: 'top', item: 'top'}
-            }
-        );
-        this.timeline.on('doubleClick', (properties) => {
-            if (properties.item) {
-                const item = items.get(properties.item);
-                this.action.doAction({
-                    type: 'ir.actions.act_window',
-                    res_model: 'pa.slow.request',
-                    res_id: item.id,
-                    views: [[false, 'form']],
-                    target: 'current',
-                });
-            }
-        });
-        
-        if (timeWindow) {
-            this.timeline.setWindow(timeWindow.start, timeWindow.end);
-        } else {
-            this.timeline.fit();
+    }
+
+    _cleanupResources() {
+        this._cleanupTimeline();
+        this.state.timelineData = null;
+        this.state.groupedData = null;
+    }
+
+    _getStoredValue(key, defaultValue) {
+        try {
+            const value = localStorage.getItem(key);
+            return value !== null ? value : defaultValue;
+        } catch (e) {
+            return defaultValue;
         }
-        
-        return this.timeline;
+    }
+
+    _storeValue(key, value) {
+        try {
+            localStorage.setItem(key, value);
+        } catch (e) {
+            console.warn('Failed to store value in localStorage:', e);
+        }
+    }
+
+    _removeStoredValue(key) {
+        try {
+            localStorage.removeItem(key);
+        } catch (e) {
+            console.warn('Failed to remove value from localStorage:', e);
+        }
+    }
+
+    _getSavedWindowPosition() {
+        try {
+            const start = localStorage.getItem(STORAGE_KEYS.WINDOW_START);
+            const end = localStorage.getItem(STORAGE_KEYS.WINDOW_END);
+
+            if (start && end) {
+                return {
+                    start: new Date(parseInt(start)),
+                    end: new Date(parseInt(end))
+                };
+            }
+        } catch (e) {
+            console.warn('Failed to get saved window position:', e);
+        }
+
+        return null;
     }
 
     filterByDate(event) {
         const selectedDate = event.target.value;
+
+        if (selectedDate === this.state.currentFilter) return;
+
         this.state.currentFilter = selectedDate;
-        
-        let itemsData, groupsData, timeWindow = null;
-        
-        if (selectedDate === 'all') {
-            // Use all timeline data
-            itemsData = this.state.timelineData;
-            groupsData = this.state.availableDates.map(date => ({
-                id: date,
-                content: date
-            }));
-        } else if (this.state.groupedData[selectedDate]) {
-            // Use only data for the selected date
-            itemsData = this.state.groupedData[selectedDate];
-            groupsData = [{
-                id: selectedDate,
-                content: selectedDate
-            }];
-            
-            // Set window to the selected date's timeframe
-            const [year, month, day] = selectedDate.split('-');
-            const date = new Date(year, month - 1, day);
-            
-            timeWindow = {
-                start: new Date(date.setHours(0, 0, 0, 0)),
-                end: new Date(new Date(date).setHours(23, 59, 59, 999))
-            };
-        } else {
-            // No data for this date
+        this._storeValue(STORAGE_KEYS.FILTER, selectedDate);
+
+        this.state.savedWindow = null;
+        this._removeStoredValue(STORAGE_KEYS.WINDOW_START);
+        this._removeStoredValue(STORAGE_KEYS.WINDOW_END);
+
+        this.state.rendering = true;
+        this._applyFilter(selectedDate);
+        setTimeout(() => {
             if (this.timeline) {
-                this.timeline.destroy();
-                this.timeline = null;
+                this.timeline.fit();
+                this._saveCurrentWindowPosition();
+                this.state.rendering = false;
             }
-            this.containerRef.el.innerHTML = '<div class="alert alert-info">No requests found for the selected date.</div>';
-            return;
-        }
-        
-        this.createTimeline(itemsData, groupsData, timeWindow);
+        }, 300);
     }
 
-    zoomFit() {
-        if (this.timeline) {
-            this.timeline.fit();
-        }
+    async applyDomainFilter() {
+        this.state.error = null;
+        this._storeValue(STORAGE_KEYS.DOMAIN_FILTER, this.state.domainFilter.trim());
+        this._fetchData(this.state.domainFilter.trim()).then(() => {
+            this.state.rendering = true;
+            setTimeout(() => {
+                if (this.containerRef && this.containerRef.el) {
+                    this._applyFilter(this.state.currentFilter);
+                }
+                this.zoomFit(200);
+                this.state.rendering = false;
+            }, 100);
+        }).catch((error) => {
+            this.state.error = `Failed to fetch data: ${error.message || error}`;
+            this.state.loading = false;
+        });
     }
+
+    zoomFit(delay = 0) {
+        if (!this.timeline) return;
+
+        setTimeout(() => {
+            this.timeline.fit();
+            this._saveCurrentWindowPosition();
+        }, delay);
+    }
+    _showNoDataMessage(filterValue) {
+        this._cleanupTimeline();
+
+        if (!this.containerRef || !this.containerRef.el) {
+            console.warn('Timeline container reference is not available');
+            return;
+        }
+
+        this.containerRef.el.innerHTML =
+            `<div class="alert alert-info">No requests found for ${filterValue === 'all' ? 'any date' : 'the selected date'
+            }.</div>`;
+    }
+
 }
 
 SlowRequestTimeline.template = 'performance_audit.SlowRequestTimeline';

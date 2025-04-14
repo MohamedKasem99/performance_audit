@@ -1,6 +1,7 @@
 from odoo import http
 from odoo.http import request
-
+from odoo.tools.safe_eval import safe_eval
+from collections import defaultdict
 class PerformanceAuditDashboardController(http.Controller):
     @http.route('/performance_audit/dashboard_data', type='json', auth='user')
     def get_dashboard_data(self):
@@ -66,46 +67,37 @@ class FieldTriggerTreeController(http.Controller):
 
 class SlowRequestController(http.Controller):
     @http.route('/performance_audit/slow_requests_data', type='json', auth='user')
-    def slow_requests_data(self):
+    def slow_requests_data(self, domain=None):
+        """Get slow requests data, optionally filtered by domain"""
+
+        base_domain = []
+        if domain:
+            try:
+                base_domain.extend(safe_eval(domain))
+            except Exception as e:
+                return {'error': f"Invalid domain: {str(e)}"}
+
         requests = request.env['pa.slow.request'].search_read(
-            [],
+            base_domain,
             ['id', 'body', 'start_timestamp', 'end_timestamp', 'ip_address',
              'total_time', 'sql_time', 'python_time', 'num_queries']
         )
 
-        # Group data by date
-        grouped_data = {}
-        available_dates = []
-        
+        grouped_data = defaultdict(list)
         for req in requests:
             date_str = str(req['start_timestamp'].date())
-            
-            # Initialize date group if it doesn't exist
-            if date_str not in grouped_data:
-                grouped_data[date_str] = []
-                available_dates.append(date_str)
-            
-            # Format the item for vis.js timeline
             timeline_item = {
                 'id': req['id'],
                 'content': req['body'][:30] + ('...' if len(req['body']) > 30 else ''),
                 'title': f"{req['body']}<br>Total Time: {req['total_time']}s<br>SQL Time: {req['sql_time']}s<br>Python Time: {req['python_time']}s<br>Queries: {req['num_queries']}",
                 'start': req['start_timestamp'],
                 'end': req['end_timestamp'],
+                'duration': req['total_time'],
                 'group': date_str
             }
-            
             grouped_data[date_str].append(timeline_item)
-        
-        # Create timeline-ready data structure
         timeline_data = {
-            'all': [],  # Contains all items for "All Dates" view
-            'byDate': grouped_data,  # Contains items grouped by date
-            'availableDates': sorted(available_dates)
+            'byDate': grouped_data,
+            'availableDates': sorted(grouped_data.keys())
         }
-        
-        # Add all items to the 'all' category
-        for date_items in grouped_data.values():
-            timeline_data['all'].extend(date_items)
-        
         return timeline_data
