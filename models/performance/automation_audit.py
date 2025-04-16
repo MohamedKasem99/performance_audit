@@ -45,6 +45,7 @@ class AutomationRuleAudit(models.Model):
                 record_count = model.search_count(domain)
             except Exception as e:
                 _logger.warning("Error evaluating domain for rule '%s': %s", rule.name, e)
+                continue
 
             if record_count > LARGE_DOMAIN_THRESHOLD:
                 issues.append({
@@ -80,29 +81,6 @@ class AutomationRuleAudit(models.Model):
             'res_model': 'pa.automation.audit',
             'view_mode': 'tree,form',
         }
-
-    @api.model
-    def _check_large_domain(self, rule):
-        """Check if rule's domain affects too many records"""
-        if not rule.action_server_ids:
-            return
-
-        try:
-            model = self.env[rule.model_id.model]
-            domain = safe_eval(rule.filter_domain or '[]')
-            record_count = model.search_count(domain)
-
-            if record_count > LARGE_DOMAIN_THRESHOLD:
-                return {
-                    'issue_type': 'large_domain',
-                    'record_count': record_count,
-                    'code_snippet': rule.filter_domain,
-                    'recommendation': _(
-                        "This automation rule applies to %d records. Consider narrowing the domain to improve performance."
-                    ) % record_count
-                }
-        except Exception as e:
-            _logger.warning("Error evaluating domain for rule '%s': %s", rule.name, e)
 
     @api.model
     def _check_batching_issues(self, rule, record_count):
