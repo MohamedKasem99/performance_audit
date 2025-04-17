@@ -22,7 +22,7 @@ class TableColumnSize(models.Model):
         for table_id, columns in table_columns.items():
             query = f"""
                 SELECT {', '.join(f'SUM(pg_column_size("{column.name}"))' for column in columns)}
-                FROM {table_id.schema}.{table_id.name}
+                FROM "{table_id.schema}"."{table_id.name}"
             """
             self.env.cr.execute(query)
             column_sizes = self.env.cr.fetchall()[0]
