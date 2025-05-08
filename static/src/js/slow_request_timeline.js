@@ -33,7 +33,7 @@ export class SlowRequestTimeline extends Component {
     setup() {
         this.state = useState({
             loading: true,
-            rendering: false,
+            rendering: true,
             groupedData: {},
             availableDates: [],
             noData: false,
@@ -60,6 +60,7 @@ export class SlowRequestTimeline extends Component {
             if (window.vis) {
                 this.state.libraryReady = true;
                 this._initTimeline();
+                this.state.rendering = false;
             } else {
                 setTimeout(checkLibrary, 50);
             }
@@ -146,8 +147,20 @@ export class SlowRequestTimeline extends Component {
 
         this._cleanupTimeline();
 
+        // Determine the day range for backgrounds
+        const dayStart = new Date(items[0].start);
+        dayStart.setHours(0, 0, 0, 0);
+        const dayEnd = new Date(items[items.length - 1].end);
+        dayEnd.setHours(23, 59, 59, 999);
+
+        // Generate backgrounds
+        const backgrounds = this._generateBackgrounds(items, dayStart, dayEnd);
+
+        // Add backgrounds to items
+        const allItems = [...items, ...backgrounds];
+
         this._items = new window.vis.DataSet({ queue: { delay: 50 } });
-        this._items.add(items);
+        this._items.add(allItems);
 
         const options = {
             ...TIMELINE_OPTIONS,
@@ -346,6 +359,53 @@ export class SlowRequestTimeline extends Component {
             }.</div>`;
     }
 
+    _generateBackgrounds(items, start, end) {
+        const backgrounds = [];
+        const periodMillis = 60 * 60 * 1000;
+
+        // Find min/max for color scaling
+        let maxWeight = 0;
+        const periodWeights = new Array(Math.ceil((end - start) / periodMillis)).fill(0);
+        const numPeriods = Math.ceil((end - start) / periodMillis);
+        for (const item of items) {
+            const periodStart = new Date(item.start).getTime();
+            const periodEnd = new Date(item.end).getTime();
+            const periodWeight = periodEnd - periodStart;
+            const periodIndex = Math.floor((periodStart - start.getTime()) / periodMillis);
+            periodWeights[periodIndex] += periodWeight;
+            maxWeight = Math.max(maxWeight, periodWeights[periodIndex]);
+        }
+
+        // Generate background items with color
+        for (let p = 0; p < numPeriods; p++) {
+            const periodStart = new Date(start.getTime() + p * periodMillis);
+            const periodEnd = new Date(periodStart.getTime() + periodMillis);
+
+            // Color: green (low) to red (high)
+            const weight = periodWeights[p];
+            const percent = maxWeight ? weight / maxWeight : 0;
+            const color = this._getColorForWeight(percent);
+
+            backgrounds.push({
+                id: `bg_${periodStart.toISOString()}`,
+                start: periodStart,
+                end: periodEnd,
+                type: 'background',
+                content: '',
+                style: `background-color: ${color}; opacity: 0.3;`
+            });
+        }
+        return backgrounds;
+    }
+
+    /**
+     * Get a color from green (low) to red (high) for a given percent (0-1).
+     */
+    _getColorForWeight(percent) {
+        const r = Math.round(255 * percent);
+        const g = Math.round(200 * (1 - percent));
+        return `rgb(${r},${g},80)`;
+    }
 }
 
 SlowRequestTimeline.template = 'performance_audit.SlowRequestTimeline';

@@ -80,7 +80,8 @@ class SlowRequestController(http.Controller):
         requests = request.env['pa.slow.request'].search_read(
             base_domain,
             ['id', 'body', 'start_timestamp', 'end_timestamp', 'ip_address',
-             'total_time', 'sql_time', 'python_time', 'num_queries']
+             'total_time', 'sql_time', 'python_time', 'num_queries'],
+            order='start_timestamp asc'
         )
 
         grouped_data = defaultdict(list)
