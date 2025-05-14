@@ -41,8 +41,8 @@ class StacktraceAudit(models.Model):
         )
         return {
             "count": self.search_count([]),
-            "mostCommonError": most_common_stacktrace[0][0],
-            "countPerDatabase": count_per_database[0][0],
+            "mostCommonError": most_common_stacktrace[0][0] if most_common_stacktrace else "",
+            "countPerDatabase": count_per_database[0][0] if count_per_database else "",
         }
 
     def audit_stacktraces(self, logs):
