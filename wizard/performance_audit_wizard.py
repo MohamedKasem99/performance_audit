@@ -37,6 +37,7 @@ class PerformanceAuditWizard(models.TransientModel):
     offset = fields.Integer(string='Starting Offset', default=0)
     table_size = fields.Boolean(string='Table Size')
     automation_audit = fields.Boolean(string='Automation Audit')
+    stacktrace_audit = fields.Boolean(string='Stacktrace Audit')
 
     def _process_log_file(self, log_file, log_file_name):
         log_file = base64.b64decode(log_file)
@@ -68,6 +69,11 @@ class PerformanceAuditWizard(models.TransientModel):
             _logger.info("Capturing table sizes")
             self.env["pa.table.size"].search([]).unlink()
             self.env["pa.table.size"].capture_table_sizes()
+
+        if self.stacktrace_audit:
+            _logger.info("Auditing stacktraces in log file %s", self.log_file_name)
+            logs = self._process_log_file(self.log_file, self.log_file_name)
+            self.env["pa.stacktrace.audit"].audit_stacktraces(logs)
 
         if self.automation_audit:
             _logger.info("Auditing automation rules")

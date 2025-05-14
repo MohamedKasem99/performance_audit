@@ -51,6 +51,12 @@
               action="action_table_size"
               sequence="40"/>
 
+    <menuitem id="menu_stacktrace_audit"
+              name="Stacktrace Audits"
+              parent="menu_performance"
+              action="action_stacktrace_audit"
+              sequence="40"/>
+
     <menuitem id="menu_field_trigger_tree"
               name="Field Trigger Tree"
               parent="menu_performance"

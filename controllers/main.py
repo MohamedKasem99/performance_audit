@@ -13,6 +13,7 @@ class PerformanceAuditDashboardController(http.Controller):
             'automation_audit_count': request.env['pa.automation.audit'].search_count([]),
             'biggest_table_size_human': biggest_table.table_size_human,
             'biggest_table_name': biggest_table.name,
+            'stacktrace_audit_stats': request.env['pa.stacktrace.audit'].get_stats(),
         }
 
 class FieldTriggerTreeController(http.Controller):
