@@ -12,6 +12,7 @@
                                 <field name="slow_requests"/>
                                 <field name="slow_requests_threshold" invisible="not slow_requests"/>
                                 <field name="table_size"/>
+                                <field name="stacktrace_audit"/>
                             </group>
                             <group>
                                 <field name="automation_audit"/>

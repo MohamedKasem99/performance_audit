@@ -15,6 +15,7 @@ export class Dashboard extends Component {
             automation_audit_count: 0,
             biggest_table_size_human: '0 Bytes',
             biggest_table_name: '',
+            stacktrace_audit_stats: {},
         });
         
         this.action = useService("action");
@@ -35,6 +36,7 @@ export class Dashboard extends Component {
                 this.state.automation_audit_count = result.automation_audit_count || 0;
                 this.state.biggest_table_size_human = result.biggest_table_size_human || '0 Bytes';
                 this.state.biggest_table_name = result.biggest_table_name || '';
+                this.state.stacktrace_audit_stats = result.stacktrace_audit_stats || {};
             }
         } catch (error) {
             console.error('Failed to load dashboard data:', error);

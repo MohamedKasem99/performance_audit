@@ -1,0 +1,57 @@
+<odoo>
+    <record id="view_stacktrace_audit_tree" model="ir.ui.view">
+        <field name="name">pa.stacktrace.audit.tree</field>
+        <field name="model">pa.stacktrace.audit</field>
+        <field name="arch" type="xml">
+            <list default_order="timestamp_utc desc" create="0" edit="0">
+                <field name="timestamp_utc"/>
+                <field name="database"/>
+                <field name="pid"/>
+                <field name="error_type"/>
+                <field name="error_module"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_stacktrace_audit_form" model="ir.ui.view">
+        <field name="name">pa.stacktrace.audit.form</field>
+        <field name="model">pa.stacktrace.audit</field>
+        <field name="arch" type="xml">
+            <form edit="0" create="0">
+                <group>
+                    <field name="timestamp_utc"/>
+                    <field name="database"/>
+                    <field name="pid"/>
+                    <field name="error_type"/>
+                    <field name="error_module"/>
+                    <field name="stacktrace"/>
+                </group>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_stacktrace_audit_search" model="ir.ui.view">
+        <field name="name">pa.stacktrace.audit.search</field>
+        <field name="model">pa.stacktrace.audit</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="database"/>
+                <field name="pid"/>
+                <field name="error_type"/>
+                <field name="error_module"/>
+                <group string="Group By">
+                    <filter name="group_by_database" string="Database" domain="[]" context="{'group_by': 'database', 'order': 'timestamp_utc desc'}"/>
+                    <filter name="group_by_pid" string="PID" domain="[]" context="{'group_by': 'pid', 'order': 'timestamp_utc desc'}"/>
+                    <filter name="group_by_error_type" string="Error Type" domain="[]" context="{'group_by': 'error_type', 'order': 'timestamp_utc desc'}"/>
+                    <filter name="group_by_error_module" string="Error Module" domain="[]" context="{'group_by': 'error_module', 'order': 'timestamp_utc desc'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_stacktrace_audit" model="ir.actions.act_window">
+        <field name="name">Stacktrace Audits</field>
+        <field name="res_model">pa.stacktrace.audit</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo> 

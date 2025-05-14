@@ -16,6 +16,7 @@
         'views/slow_request_views.xml',
         'views/cron_audit_views.xml',
         'views/table_size_views.xml',
+        'views/stacktrace_audit_views.xml',
         'views/performance_audit_dashboard.xml',
         'views/performance_menu.xml',
     ],
