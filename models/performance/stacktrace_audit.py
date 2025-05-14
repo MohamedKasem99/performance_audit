@@ -117,3 +117,31 @@ class StacktraceAudit(models.Model):
                 }
             )
         self.create(stacktraces)
+
+    @api.model
+    def web_read_group(
+        self, domain, fields, groupby, limit=None, offset=0, orderby=False, lazy=True
+    ):
+        """
+        Override the default web_read_group to return groups sorted by the count of the group
+        """
+        result = super().web_read_group(
+            domain,
+            fields,
+            groupby,
+            limit=None,
+            offset=0,
+            orderby=orderby,
+            lazy=lazy,
+        )
+        # sort the groups by the count field
+        if result["groups"]:
+            count_field = f"{groupby[0]}_count" if groupby else None
+            if count_field and count_field in result["groups"][0]:
+                result["groups"].sort(key=lambda x: x[count_field], reverse=True)
+        # handle offset then limit
+        if offset:
+            result["groups"] = result["groups"][offset:]
+        if limit:
+            result["groups"] = result["groups"][:limit]
+        return result
