@@ -97,3 +97,11 @@ class PerformanceAuditWizard(models.TransientModel):
             'type': 'ir.actions.client',
             'tag': 'reload',
         }
+
+    def clear_crons_and_requests(self):
+        self.env["pa.cron.audit"].search([]).unlink()
+        self.env["pa.slow.request"].search([]).unlink()
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'reload',
+        }
