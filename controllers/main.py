@@ -80,20 +80,23 @@ class SlowRequestController(http.Controller):
 
         requests = request.env['pa.slow.request'].search_read(
             base_domain,
-            ['id', 'body', 'start_timestamp', 'end_timestamp', 'ip_address',
+            ['id', 'body', 'start_timestamp_utc', 'end_timestamp_utc', 'ip_address',
              'total_time', 'sql_time', 'python_time', 'num_queries'],
-            order='start_timestamp asc'
+            order='start_timestamp_utc asc'
         )
 
         grouped_data = defaultdict(list)
         for req in requests:
-            date_str = str(req['start_timestamp'].date())
+            date_str = req['start_timestamp_utc'][:10]
+            # remove the " UTC" suffix
+            start_timestamp = req['start_timestamp_utc'][:-4]
+            end_timestamp = req['end_timestamp_utc'][:-4]
             timeline_item = {
                 'id': req['id'],
                 'content': req['body'][:30] + ('...' if len(req['body']) > 30 else ''),
                 'title': f"{req['body']}<br>Total Time: {req['total_time']}s<br>SQL Time: {req['sql_time']}s<br>Python Time: {req['python_time']}s<br>Queries: {req['num_queries']}",
-                'start': req['start_timestamp'],
-                'end': req['end_timestamp'],
+                'start': start_timestamp,
+                'end': end_timestamp,
                 'duration': req['total_time'],
                 'group': date_str
             }
