@@ -98,10 +98,16 @@ class PerformanceAuditWizard(models.TransientModel):
             'tag': 'reload',
         }
 
-    def clear_crons_and_requests(self):
+    def clear_log_audits(self):
         self.env["pa.cron.audit"].search([]).unlink()
         self.env["pa.slow.request"].search([]).unlink()
+        self.env["pa.stacktrace.audit"].search([]).unlink()
         return {
             'type': 'ir.actions.client',
-            'tag': 'reload',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Log Audits Cleared',
+                'message': 'Previous cron, slow request and stacktrace audits have been cleared. You might need to reload the dashboard to see the changes.',
+                'type': 'success',
+            }
         }

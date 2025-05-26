@@ -32,7 +32,7 @@
                     <button string="Run Audit" name="run_audit" type="object" class="btn-primary" data-hotkey="q"/>
                     <button string="Cancel" class="btn-secondary" special="cancel" data-hotkey="z"/>
                     <!-- button to clear crons and requests -->
-                    <button string="Clear Crons and Requests" name="clear_crons_and_requests" type="object" class="btn-danger" data-hotkey="q"/>
+                    <button string="Clear Log Audits" name="clear_log_audits" type="object" class="btn-danger" data-hotkey="q"/>
                 </footer>
             </form>
         </field>
