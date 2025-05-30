@@ -10,7 +10,7 @@ class TableColumnSize(models.Model):
 
     table_id = fields.Many2one('pa.table.size', required=True, ondelete='cascade')
     name = fields.Char('Column Name', required=True)
-    size = fields.Integer('Size (bytes)', compute='_compute_size', store=True, readonly=True)
+    size = fields.Float('Size (bytes)', compute='_compute_size', store=True, readonly=True, digits=(20, 2))
     size_human = fields.Char('Size', compute='_compute_size_human', store=True, readonly=True)
 
     @api.depends('name')
@@ -54,9 +54,9 @@ class TableSize(models.Model):
     schema = fields.Char('Schema Name', required=True, default='public')
     
     # Sizes in bytes
-    table_size = fields.Integer('Table Size (bytes)')
-    index_size = fields.Integer('Index Size (bytes)')
-    toast_size = fields.Integer('TOAST Size (bytes)')
+    table_size = fields.Float('Table Size (bytes)', digits=(20, 2))
+    index_size = fields.Float('Index Size (bytes)', digits=(20, 2))
+    toast_size = fields.Float('TOAST Size (bytes)', digits=(20, 2))
     column_size_ids = fields.One2many('pa.table.column.size', 'table_id', string='Column Sizes', readonly=True)
     
     # Human-readable sizes
