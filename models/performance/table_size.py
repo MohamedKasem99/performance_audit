@@ -1,7 +1,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 from odoo import models, fields, api
 from collections import defaultdict
-from ...utils import human_size
+from odoo.tools import human_size
 
 class TableColumnSize(models.Model):
     _name = 'pa.table.column.size'
