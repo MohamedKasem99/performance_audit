@@ -15,7 +15,7 @@ LOG_PATTERN = re.compile(
     r"(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}),\d{3}\s"
     r"(?P<pid>\d+)\s"
     r"(?P<log_level>[A-Z]+)\s"
-    r".*"
+    r"(?P<database>[\w]+)\s"
     r"(?P<logger>[\w:]+):\s"
     r"(?P<ip_address>[\d.]+)\s-\s-\s\[.*\]\s"
     r"\"(?P<body>.+?)\"\s\d+\s-\s"
@@ -31,6 +31,7 @@ class SlowRequest(models.Model):
 
     end_timestamp = fields.Datetime()
     end_timestamp_utc = fields.Char(string="End timestamp UTC", compute='_compute_timestamps_utc', store=True)
+    database = fields.Char(string="Database")
     body = fields.Char(string="Body", required=True)
     ip_address = fields.Char(string="IP Address")
     num_queries = fields.Integer(string="Number of queries")
@@ -74,6 +75,7 @@ class SlowRequest(models.Model):
                 return {
                             "end_timestamp": fields.Datetime.from_string(data["timestamp"]),
                             "pid": int(data["pid"]),
+                            "database": data["database"],
                             "ip_address": data["ip_address"],
                             "body": data["body"],
                             "num_queries": int(data["num_queries"]),
