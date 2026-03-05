@@ -27,6 +27,20 @@
                                 <i class="fa fa-arrows-alt me-1"/>
  Fit View
                             </button>
+                            <div class="d-flex align-items-center ms-2 border rounded px-2 py-1" style="gap:0.4rem;background:#f8f9fa;">
+                                <button t-on-click="toggleCrons"
+                                    t-attf-class="btn btn-sm {{ state.showCrons ? 'btn-info' : 'btn-outline-secondary' }}">
+                                    <i class="fa fa-clock-o me-1"/>
+                                    Cron Jobs
+                                </button>
+                                <label class="mb-0 text-nowrap" style="font-size:0.85rem;">Min:</label>
+                                <input type="number" class="form-control form-control-sm" style="width:70px;"
+                                    min="0" step="1"
+                                    t-att-value="state.cronMinDuration"
+                                    t-on-change="setCronMinDuration"
+                                    placeholder="0"/>
+                                <span class="text-muted" style="font-size:0.85rem;">s</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -42,6 +56,25 @@
                         </button>
                     </div>
                 </div>
+            </div>
+
+            <!-- Legend -->
+            <div class="d-flex align-items-center gap-3 px-3 pb-2" style="font-size:0.82rem;">
+                <span class="d-flex align-items-center gap-1">
+                    <span style="display:inline-block;width:14px;height:14px;background:#4e73df;border-radius:3px;"/>
+                    Slow Request
+                </span>
+                <t t-if="state.showCrons">
+                    <span class="d-flex align-items-center gap-1">
+                        <span style="display:inline-block;width:14px;height:14px;background:#e67e22;border-radius:3px;"/>
+                        Cron Execution
+                    </span>
+                    <span class="d-flex align-items-center gap-1">
+                        <span style="display:inline-block;width:14px;height:14px;background:#c0392b;border-radius:3px;"/>
+                        Cron Timeout/Error
+                    </span>
+                </t>
+                <span class="text-muted ms-2">Double-click any item to open its record.</span>
             </div>
 
             <div class="o_content p-3">

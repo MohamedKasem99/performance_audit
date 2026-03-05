@@ -2,6 +2,7 @@ from odoo import http
 from odoo.http import request
 from odoo.tools.safe_eval import safe_eval
 from collections import defaultdict
+from datetime import timedelta
 class PerformanceAuditDashboardController(http.Controller):
     @http.route('/performance_audit/dashboard_data', type='json', auth='user')
     def get_dashboard_data(self):
@@ -103,6 +104,47 @@ class SlowRequestController(http.Controller):
             grouped_data[date_str].append(timeline_item)
         timeline_data = {
             'byDate': grouped_data,
-            'availableDates': sorted(grouped_data.keys())
+            'availableDates': sorted(grouped_data.keys()),
+            'minRequestTotalTime': min((r['total_time'] for r in requests), default=0),
         }
+
+        # Fetch cron executions and group by date
+        executions = request.env['pa.cron.execution'].search_read(
+            [],
+            ['id', 'timestamp', 'duration', 'is_timeout', 'cron_audit_id'],
+            order='timestamp asc'
+        )
+        crons_grouped = defaultdict(list)
+        for exe in executions:
+            ts = exe['timestamp']
+            if not ts:
+                continue
+            start_dt = ts
+            ts = ts.strftime('%Y-%m-%d %H:%M:%S')
+            date_str = ts[:10]
+            duration = exe['duration'] or 0
+            end_dt = start_dt + timedelta(seconds=duration)
+            end_ts = end_dt.strftime('%Y-%m-%d %H:%M:%S')
+            cron_name = exe['cron_audit_id'][1] if exe['cron_audit_id'] else 'Unknown'
+            cron_audit_id = exe['cron_audit_id'][0] if exe['cron_audit_id'] else None
+            is_timeout = exe['is_timeout']
+            crons_grouped[date_str].append({
+                'id': f"cron_{exe['id']}",
+                'content': (cron_name[:25] + '...') if len(cron_name) > 25 else cron_name,
+                'title': (
+                    f"<b>{cron_name}</b><br>"
+                    f"Start: {ts}<br>"
+                    f"End: {end_ts}<br>"
+                    f"Duration: {duration:.2f}s"
+                    + ("<br><span style='color:#e74c3c;font-weight:bold;'>&#9888; TIMEOUT / ERROR</span>" if is_timeout else "")
+                ),
+                'start': ts,
+                'end': end_ts,
+                'duration': duration,
+                'group': date_str,
+                'itemType': 'cron',
+                'is_timeout': is_timeout,
+                'cronAuditId': cron_audit_id,
+            })
+        timeline_data['cronsByDate'] = crons_grouped
         return timeline_data
