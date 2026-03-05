@@ -8,8 +8,14 @@ const STORAGE_KEY_PREFIX = 'performance_audit_timeline_';
 const STORAGE_KEYS = {
     FILTER: `${STORAGE_KEY_PREFIX}filter`,
     WINDOW_START: `${STORAGE_KEY_PREFIX}window_start`,
-    WINDOW_END: `${STORAGE_KEY_PREFIX}window_end`
+    WINDOW_END: `${STORAGE_KEY_PREFIX}window_end`,
+    DOMAIN_FILTER: `${STORAGE_KEY_PREFIX}domain_filter`,
+    SHOW_CRONS: `${STORAGE_KEY_PREFIX}show_crons`,
+    CRON_MIN_DURATION: `${STORAGE_KEY_PREFIX}cron_min_duration`,
 };
+
+const CRON_CLASS_NORMAL = 'vis-cron-item';
+const CRON_CLASS_TIMEOUT = 'vis-cron-timeout-item';
 
 const TIMELINE_OPTIONS = {
     stack: true,
@@ -34,12 +40,18 @@ export class SlowRequestTimeline extends Component {
             loading: true,
             rendering: true,
             groupedData: {},
+            cronData: {},
             availableDates: [],
             noData: false,
             error: null,
             currentFilter: this._getStoredValue(STORAGE_KEYS.FILTER, 'all'),
             savedWindow: this._getSavedWindowPosition(),
             domainFilter: this._getStoredValue(STORAGE_KEYS.DOMAIN_FILTER, ''),
+            showCrons: this._getStoredValue(STORAGE_KEYS.SHOW_CRONS, 'false') === 'true',
+            // null means "use server default"; only store explicit user edits
+            cronMinDuration: localStorage.getItem(STORAGE_KEYS.CRON_MIN_DURATION) !== null
+                ? (parseFloat(localStorage.getItem(STORAGE_KEYS.CRON_MIN_DURATION)) || 0)
+                : null,
             libraryReady: false
         });
 
@@ -80,7 +92,11 @@ export class SlowRequestTimeline extends Component {
                 return Promise.reject(result.error);
             }
             this.state.groupedData = result.byDate || {};
+            this.state.cronData = result.cronsByDate || {};
             this.state.availableDates = result.availableDates || [];
+            if (this.state.cronMinDuration === null) {
+                this.state.cronMinDuration = result.minRequestTotalTime || 0;
+            }
 
             if (this.state.currentFilter !== 'all' &&
                 !this.state.availableDates.includes(this.state.currentFilter)) {
@@ -116,19 +132,38 @@ export class SlowRequestTimeline extends Component {
     }
 
     _prepareTimelineData(filterValue) {
+        const allCronItems = this.state.showCrons
+            ? (filterValue === 'all'
+                ? Object.values(this.state.cronData).flat()
+                : (this.state.cronData[filterValue] || []))
+            : [];
+        const minDur = this.state.cronMinDuration ?? 0;
+        const cronItems = minDur > 0
+            ? allCronItems.filter(item => item.duration >= minDur || item.is_timeout)
+            : allCronItems;
+
+        // Apply cron styles
+        const styledCronItems = cronItems.map(item => ({
+            ...item,
+            className: item.is_timeout ? CRON_CLASS_TIMEOUT : CRON_CLASS_NORMAL,
+            content: `⏱ ${item.content} <span class="vis-cron-duration">${item.duration.toFixed(1)}s${item.is_timeout ? ' ⚠' : ''}</span>`,
+        }));
+
         if (filterValue === 'all') {
+            const requestItems = Object.values(this.state.groupedData).flat();
             return {
-                items: Object.values(this.state.groupedData).flat(),
+                items: [...requestItems, ...styledCronItems],
                 timeWindow: null
             };
         }
 
-        if (this.state.groupedData[filterValue]) {
+        if (this.state.groupedData[filterValue] || styledCronItems.length) {
+            const requestItems = this.state.groupedData[filterValue] || [];
             const [year, month, day] = filterValue.split('-');
             const date = new Date(year, month - 1, day);
 
             return {
-                items: this.state.groupedData[filterValue],
+                items: [...requestItems, ...styledCronItems],
                 timeWindow: {
                     start: new Date(new Date(date).setHours(0, 0, 0, 0)),
                     end: new Date(new Date(date).setHours(23, 59, 59, 999))
@@ -212,13 +247,58 @@ export class SlowRequestTimeline extends Component {
         this._saveCurrentWindowPosition();
 
         const item = this._items.get(properties.item);
-        this.action.doAction({
-            type: 'ir.actions.act_window',
-            res_model: 'pa.slow.request',
-            res_id: item.id,
-            views: [[false, 'form']],
-            target: 'current',
-        });
+        if (!item || item.type === 'background') return;
+
+        if (item.itemType === 'cron') {
+            if (!item.cronAuditId) return;
+            this.action.doAction({
+                type: 'ir.actions.act_window',
+                res_model: 'pa.cron.audit',
+                res_id: item.cronAuditId,
+                views: [[false, 'form']],
+                target: 'current',
+            });
+        } else {
+            this.action.doAction({
+                type: 'ir.actions.act_window',
+                res_model: 'pa.slow.request',
+                res_id: item.id,
+                views: [[false, 'form']],
+                target: 'current',
+            });
+        }
+    }
+
+    /**
+     * Captures the current visible window, runs fn(), then restores it.
+     * The 350 ms delay avoids a race condition with _restoreTimelinePosition's
+     * zoomFit(300) call: without it, our setWindow would fire first and be
+     * immediately overwritten by the fit animation.
+     */
+    _preserveWindow(fn) {
+        const currentWindow = this.timeline ? this.timeline.getWindow() : null;
+        fn();
+        if (currentWindow && this.timeline) {
+            setTimeout(() => {
+                if (this.timeline) {
+                    this.timeline.setWindow(currentWindow.start, currentWindow.end, { animation: false });
+                }
+            }, 350);
+        }
+    }
+
+    toggleCrons() {
+        this.state.showCrons = !this.state.showCrons;
+        this._storeValue(STORAGE_KEYS.SHOW_CRONS, this.state.showCrons);
+        this._preserveWindow(() => this._applyFilter(this.state.currentFilter));
+    }
+
+    setCronMinDuration(event) {
+        const val = parseFloat(event.target.value);
+        this.state.cronMinDuration = isNaN(val) || val < 0 ? 0 : val;
+        // Once the user touches the field, persist it (even if 0)
+        this._storeValue(STORAGE_KEYS.CRON_MIN_DURATION, this.state.cronMinDuration);
+        this._preserveWindow(() => this._applyFilter(this.state.currentFilter));
     }
 
     _handleRangeChanged(properties) {
@@ -250,7 +330,6 @@ export class SlowRequestTimeline extends Component {
 
     _cleanupResources() {
         this._cleanupTimeline();
-        this.state.timelineData = null;
         this.state.groupedData = null;
     }
 
